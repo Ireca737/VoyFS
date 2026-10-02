@@ -1,0 +1,4 @@
+config/credentials.json
+config/radio-bridge.json
+logs/*
+!logs/.gitkeep
