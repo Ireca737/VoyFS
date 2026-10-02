@@ -1,0 +1,8 @@
+{
+  "listen_url": "http://127.0.0.1:8787/",
+  "teamspeak": {
+    "host": "127.0.0.1",
+    "port": 10011,
+    "server_id": 1
+  }
+}
