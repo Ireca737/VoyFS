@@ -35,6 +35,29 @@ namespace JoinFS.FlyLab.UI
                 status.ForeColor = TextMuted;
         }
 
+        public static void ApplySecondaryGrid(DataGridView grid)
+        {
+            if (grid == null)
+                return;
+
+            grid.BackgroundColor = Panel;
+            grid.BorderStyle = BorderStyle.None;
+            grid.GridColor = GridLine;
+            grid.EnableHeadersVisualStyles = false;
+            grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
+            grid.ColumnHeadersDefaultCellStyle.BackColor = Surface;
+            grid.ColumnHeadersDefaultCellStyle.ForeColor = TextMuted;
+            grid.ColumnHeadersDefaultCellStyle.SelectionBackColor = Surface;
+            grid.ColumnHeadersDefaultCellStyle.SelectionForeColor = Text;
+            grid.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
+            grid.ColumnHeadersHeight = 30;
+            grid.DefaultCellStyle.BackColor = Surface;
+            grid.DefaultCellStyle.ForeColor = Text;
+            grid.DefaultCellStyle.SelectionBackColor = Surface;
+            grid.DefaultCellStyle.SelectionForeColor = Text;
+            grid.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+        }
+
         public static void ApplyDetailFields(params Label[] labels)
         {
             foreach (Label label in labels)
