@@ -673,7 +673,11 @@ namespace JoinFS
 
             // Apply FlyLab presentation while preserving upstream hub status colours and behavior.
             FlyLabTheme.ApplyListForm(this, DataGrid_HubList, Button_Refresh, Context_Hub);
+            // Neutralize the upstream white Name column; status colours remain user-configurable.
+            ColHubName.DefaultCellStyle.BackColor = FlyLabTheme.Panel;
+            ColHubName.DefaultCellStyle.ForeColor = FlyLabTheme.Text;
             FlyLabTheme.ApplySecondaryGrid(DataGrid_Hub);
+            DataGrid_Hub.Height = Math.Max(DataGrid_Hub.Height, 58);
             FlyLabTheme.ApplyCaptions(label1, label2, label3, label4);
             flyLabChrome = FlyLabDetailListChrome.Attach(this, DataGrid_HubList, "HUB PUBBLICI");
         }
