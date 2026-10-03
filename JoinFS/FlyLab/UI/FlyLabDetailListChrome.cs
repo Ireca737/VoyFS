@@ -14,13 +14,13 @@ namespace JoinFS.FlyLab.UI
         private readonly Form form;
         private readonly DataGridView grid;
         private readonly Panel header;
-        private readonly int originalGridBottom;
+        private readonly int originalGridBottomGap;
 
         private FlyLabDetailListChrome(Form form, DataGridView grid, string title)
         {
             this.form = form;
             this.grid = grid;
-            originalGridBottom = grid.Bottom;
+            originalGridBottomGap = form.ClientSize.Height - grid.Bottom;
 
             header = new Panel
             {
@@ -64,7 +64,7 @@ namespace JoinFS.FlyLab.UI
         private void LayoutGrid()
         {
             int top = header.Bottom + 10;
-            int bottom = Math.Max(top + 80, originalGridBottom);
+            int bottom = Math.Max(top + 80, form.ClientSize.Height - originalGridBottomGap);
             grid.Top = top;
             grid.Height = Math.Max(80, bottom - top);
         }
