@@ -24,9 +24,9 @@ namespace JoinFS.FlyLab.UI
 
             header = new Panel
             {
-                Height = 58,
+                Height = 90,
                 Dock = DockStyle.Top,
-                Padding = new Padding(16, 10, 16, 8)
+                Padding = new Padding(16, 8, 12, 8)
             };
 
             var titleLabel = new Label
@@ -37,25 +37,36 @@ namespace JoinFS.FlyLab.UI
                 Font = new Font("Segoe UI Semibold", 14F, FontStyle.Bold)
             };
 
-            var brand = new Label
+            var brandBlock = new Panel
             {
-                AutoSize = true,
+                Width = 84,
                 Dock = DockStyle.Right,
-                Text = "FLYLAB FS",
-                Padding = new Padding(8, 6, 0, 0),
-                Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold)
+                BackColor = FlyLabTheme.Background
             };
             var brandLogo = new PictureBox
             {
-                Width = 30,
-                Dock = DockStyle.Right,
+                Width = 64,
+                Height = 64,
+                Top = 0,
+                Left = 10,
                 Image = FlyLabIcons.BrandBitmap,
                 SizeMode = PictureBoxSizeMode.Zoom,
-                Margin = new Padding(0)
+                BackColor = FlyLabTheme.Background
             };
+            var brand = new Label
+            {
+                Width = 84,
+                Height = 18,
+                Top = 64,
+                Left = 0,
+                Text = "FLYLAB FS",
+                TextAlign = ContentAlignment.MiddleCenter,
+                Font = new Font("Segoe UI Semibold", 8F, FontStyle.Bold)
+            };
+            brandBlock.Controls.Add(brandLogo);
+            brandBlock.Controls.Add(brand);
 
-            header.Controls.Add(brand);
-            header.Controls.Add(brandLogo);
+            header.Controls.Add(brandBlock);
             header.Controls.Add(titleLabel);
             form.Controls.Add(header);
             header.BringToFront();
