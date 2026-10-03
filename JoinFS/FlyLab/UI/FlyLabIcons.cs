@@ -30,12 +30,7 @@ namespace JoinFS.FlyLab.UI
                     .FirstOrDefault(name => name.EndsWith("." + ApplicationIconFileName, StringComparison.OrdinalIgnoreCase));
 
                 if (resourceName == null)
-                {
-                    string availableResources = string.Join(Environment.NewLine, assembly.GetManifestResourceNames());
-                    throw new InvalidOperationException(
-                        "FlyLabFS icon resource '" + ApplicationIconFileName + "' was not found." + Environment.NewLine +
-                        "Embedded resources:" + Environment.NewLine + availableResources);
-                }
+                    return null;
 
                 using (Stream stream = assembly.GetManifestResourceStream(resourceName))
                 {
