@@ -249,6 +249,11 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <!-- FlyLab UI resources -->
+  <ItemGroup Condition=" '$(Configuration)' != 'CONSOLE-Debug' AND '$(Configuration)' != 'CONSOLE' ">
+    <EmbeddedResource Include="FlyLab\Resources\flylabfs.ico" />
+  </ItemGroup>
+
   <!-- Copy AIModel folder to output directory -->
   <ItemGroup>
     <Compile Remove="Installer\**" />
