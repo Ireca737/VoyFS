@@ -10,6 +10,7 @@ namespace JoinFS
     public partial class AtcForm : Form
     {
         Main main;
+        private FlyLabListChrome flyLabChrome;
 
         /// <summary>
         /// Item in the list
