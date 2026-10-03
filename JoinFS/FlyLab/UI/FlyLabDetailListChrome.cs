@@ -39,7 +39,7 @@ namespace JoinFS.FlyLab.UI
 
             var brandBlock = new Panel
             {
-                Width = 84,
+                Width = 178,
                 Dock = DockStyle.Right,
                 BackColor = FlyLabTheme.Background
             };
@@ -47,21 +47,21 @@ namespace JoinFS.FlyLab.UI
             {
                 Width = 64,
                 Height = 64,
-                Top = 0,
-                Left = 10,
+                Top = 5,
+                Left = 4,
                 Image = FlyLabIcons.BrandBitmap,
                 SizeMode = PictureBoxSizeMode.Zoom,
                 BackColor = FlyLabTheme.Background
             };
             var brand = new Label
             {
-                Width = 84,
-                Height = 18,
-                Top = 64,
-                Left = 0,
+                Width = 102,
+                Height = 64,
+                Top = 5,
+                Left = 72,
                 Text = "FLYLAB FS",
-                TextAlign = ContentAlignment.MiddleCenter,
-                Font = new Font("Segoe UI Semibold", 8F, FontStyle.Bold)
+                TextAlign = ContentAlignment.MiddleLeft,
+                Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold)
             };
             brandBlock.Controls.Add(brandLogo);
             brandBlock.Controls.Add(brand);
