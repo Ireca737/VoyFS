@@ -34,12 +34,24 @@ namespace JoinFS.FlyLab.UI
                 AutoSize = true, Dock = DockStyle.Left, Text = title,
                 Font = new Font("Segoe UI Semibold", 14F, FontStyle.Bold)
             };
-            var brand = new Label {
-                AutoSize = true, Dock = DockStyle.Right, Text = "FLYLAB FS",
-                Padding = new Padding(0, 6, 0, 0),
+            var brand = new Label
+            {
+                AutoSize = true,
+                Dock = DockStyle.Right,
+                Text = "FLYLAB FS",
+                Padding = new Padding(8, 6, 0, 0),
                 Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold)
             };
+            var brandLogo = new PictureBox
+            {
+                Width = 30,
+                Dock = DockStyle.Right,
+                Image = FlyLabIcons.BrandBitmap,
+                SizeMode = PictureBoxSizeMode.Zoom,
+                Margin = new Padding(0)
+            };
             header.Controls.Add(brand);
+            header.Controls.Add(brandLogo);
             header.Controls.Add(titleLabel);
 
             footer = new Panel { Height = 46, Dock = DockStyle.Bottom, Padding = new Padding(16, 7, 12, 7) };
