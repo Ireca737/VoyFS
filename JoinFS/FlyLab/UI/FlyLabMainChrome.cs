@@ -49,7 +49,7 @@ namespace JoinFS.FlyLab.UI
             instrument.Controls.Add(avionics);
 
             networkButton = Find<Button>(form, "Button_Network");
-            var timer = new Timer { Interval = 250 };
+            var timer = new System.Windows.Forms.Timer { Interval = 250 };
             timer.Tick += (_, __) => RefreshTrafficSignal();
             timer.Start();
 
@@ -164,7 +164,7 @@ namespace JoinFS.FlyLab.UI
 
             // JoinFS itself owns the functional colour/state of Button_Network.
             // In L1 we infer signal from the same semantic Active colour used by JoinFS.
-            bool online = networkButton.BackColor == JoinFS.Properties.Settings.Default.ColourActive;
+            bool online = networkButton.BackColor == JoinFS.Properties.Settings.Default.ColourActiveBackground;
             trafficState.Text = online ? "TCAS ONLINE" : "NO SIGNAL";
             trafficState.ForeColor = online ? FlyLabTheme.Success : FlyLabTheme.Error;
         }
@@ -190,12 +190,22 @@ namespace JoinFS.FlyLab.UI
         private static Button ProxyButton(Form form, string text, string sourceName, int width)
         {
             var b = ButtonStyle(text, width);
-            var source = Find<Control>(form, sourceName);
+            var source = Find<object>(form, sourceName);
             if (source != null)
             {
-                b.Enabled = source.Enabled;
-                b.Visible = source.Visible;
-                b.Click += (_, __) => source.PerformClick();
+                if (source is Control control)
+                {
+                    b.Enabled = control.Enabled;
+                    b.Visible = control.Visible;
+                    if (control is Button button)
+                        b.Click += (_, __) => button.PerformClick();
+                }
+                else if (source is ToolStripItem item)
+                {
+                    b.Enabled = item.Enabled;
+                    b.Visible = item.Visible;
+                    b.Click += (_, __) => item.PerformClick();
+                }
             }
             else b.Enabled = false;
             return b;
