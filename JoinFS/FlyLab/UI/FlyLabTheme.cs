@@ -35,6 +35,33 @@ namespace JoinFS.FlyLab.UI
                 status.ForeColor = TextMuted;
         }
 
+        public static void ApplyDetailFields(params Label[] labels)
+        {
+            foreach (Label label in labels)
+            {
+                if (label == null)
+                    continue;
+
+                label.BackColor = Surface;
+                label.ForeColor = Text;
+                label.BorderStyle = BorderStyle.FixedSingle;
+                label.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            }
+        }
+
+        public static void ApplyCaptions(params Label[] labels)
+        {
+            foreach (Label label in labels)
+            {
+                if (label == null)
+                    continue;
+
+                label.BackColor = Background;
+                label.ForeColor = TextMuted;
+                label.Font = new Font("Segoe UI Semibold", 8.5F, FontStyle.Bold, GraphicsUnit.Point);
+            }
+        }
+
         public static void ApplyListForm(Form form, DataGridView grid, Button refreshButton, ContextMenuStrip contextMenu)
         {
             form.BackColor = Background;
