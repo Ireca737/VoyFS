@@ -1,0 +1,248 @@
+#if !CONSOLE
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+
+namespace JoinFS.FlyLab.UI
+{
+    /// <summary>
+    /// FlyLabFS presentation shell for MainForm.
+    /// L1 deliberately reuses the existing JoinFS controls and event handlers.
+    /// Future avionics/traffic providers plug into this shell without moving logic into MainForm.
+    /// </summary>
+    internal sealed class FlyLabMainChrome
+    {
+        private readonly Form form;
+        private readonly Panel trafficDisplay;
+        private readonly Label trafficState;
+        private readonly Button networkButton;
+
+        private FlyLabMainChrome(Form form)
+        {
+            this.form = form;
+            form.SuspendLayout();
+
+            form.BackColor = FlyLabTheme.Background;
+            form.ForeColor = FlyLabTheme.Text;
+            form.Font = new Font("Segoe UI", 9F);
+            form.MinimumSize = new Size(900, 620);
+            form.Size = new Size(1040, 700);
+
+            var host = new Panel { Dock = DockStyle.Fill, BackColor = FlyLabTheme.Background, Padding = new Padding(12) };
+            form.Controls.Add(host);
+            host.BringToFront();
+
+            var header = BuildHeader();
+            var sidebar = BuildSidebar(form);
+            var instrument = new Panel { Dock = DockStyle.Fill, BackColor = FlyLabTheme.Panel, Padding = new Padding(10) };
+
+            host.Controls.Add(instrument);
+            host.Controls.Add(sidebar);
+            host.Controls.Add(header);
+
+            var avionics = BuildAvionicsStrip();
+            var connection = BuildConnectionDeck(form);
+            trafficDisplay = BuildTrafficDisplay(out trafficState);
+
+            instrument.Controls.Add(trafficDisplay);
+            instrument.Controls.Add(connection);
+            instrument.Controls.Add(avionics);
+
+            networkButton = Find<Button>(form, "Button_Network");
+            var timer = new Timer { Interval = 250 };
+            timer.Tick += (_, __) => RefreshTrafficSignal();
+            timer.Start();
+
+            RefreshTrafficSignal();
+            form.ResumeLayout(true);
+        }
+
+        public static FlyLabMainChrome Attach(Form form)
+        {
+            return form == null ? null : new FlyLabMainChrome(form);
+        }
+
+        private static Panel BuildHeader()
+        {
+            var panel = new Panel { Dock = DockStyle.Top, Height = 72, BackColor = FlyLabTheme.Background };
+            var logo = new PictureBox { Dock = DockStyle.Left, Width = 62, Image = FlyLabIcons.BrandBitmap, SizeMode = PictureBoxSizeMode.Zoom };
+            var title = new Label { Dock = DockStyle.Left, Width = 240, Text = "FLYLAB FS", ForeColor = FlyLabTheme.Accent, TextAlign = ContentAlignment.MiddleLeft, Font = new Font("Segoe UI Semibold", 19F, FontStyle.Bold) };
+            var subtitle = new Label { Dock = DockStyle.Fill, Text = "FLIGHT SIMULATION NETWORK", ForeColor = FlyLabTheme.TextMuted, TextAlign = ContentAlignment.MiddleRight, Font = new Font("Segoe UI Semibold", 9F) };
+            panel.Controls.Add(subtitle);
+            panel.Controls.Add(title);
+            panel.Controls.Add(logo);
+            return panel;
+        }
+
+        private static Panel BuildSidebar(Form form)
+        {
+            var panel = new Panel { Dock = DockStyle.Left, Width = 205, BackColor = FlyLabTheme.Background, Padding = new Padding(0, 8, 12, 0), AutoScroll = true };
+            var flow = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoScroll = true, BackColor = FlyLabTheme.Background };
+            panel.Controls.Add(flow);
+
+            AddSection(flow, "FUNZIONI");
+            AddProxy(flow, form, "PILOTI", "Menu_View_Session");
+            AddProxy(flow, form, "AEREI", "Menu_View_Aircraft");
+            AddProxy(flow, form, "ATC", "Menu_View_Atc");
+            AddProxy(flow, form, "HUB", "Menu_View_Hubs");
+            AddProxy(flow, form, "OGGETTI", "Menu_View_Objects");
+            AddProxy(flow, form, "MAPPA", "Tool_Map");
+
+            AddSection(flow, "SERVIZI");
+            AddPlaceholder(flow, "COMMS");
+            AddPlaceholder(flow, "ACARS");
+            AddProxy(flow, form, "PIANO DI VOLO", "Button_FlightPlan");
+            AddProxy(flow, form, "SIMBRIEF", "Button_SimBrief");
+
+            AddSection(flow, "SISTEMA");
+            AddProxy(flow, form, "SETTINGS", "Menu_File_Settings");
+            AddProxy(flow, form, "MONITOR", "Menu_View_Monitor");
+            AddPlaceholder(flow, "TOOLS");
+
+            return panel;
+        }
+
+        private static Panel BuildAvionicsStrip()
+        {
+            var panel = new Panel { Dock = DockStyle.Top, Height = 78, BackColor = FlyLabTheme.Surface, Padding = new Padding(8) };
+            var table = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 4, RowCount = 1, BackColor = FlyLabTheme.Surface };
+            for (int i = 0; i < 4; i++) table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
+            table.Controls.Add(Readout("COM 1", "---.---"), 0, 0);
+            table.Controls.Add(Readout("COM 2", "---.---"), 1, 0);
+            table.Controls.Add(Readout("XPDR", "----"), 2, 0);
+            table.Controls.Add(Readout("CALLSIGN", "-----"), 3, 0);
+            panel.Controls.Add(table);
+            return panel;
+        }
+
+        private static Control Readout(string caption, string value)
+        {
+            var p = new Panel { Dock = DockStyle.Fill, Margin = new Padding(4), BackColor = FlyLabTheme.Panel };
+            p.Controls.Add(new Label { Dock = DockStyle.Fill, Text = value, ForeColor = FlyLabTheme.Text, TextAlign = ContentAlignment.MiddleCenter, Font = new Font("Consolas", 15F, FontStyle.Bold) });
+            p.Controls.Add(new Label { Dock = DockStyle.Top, Height = 20, Text = caption, ForeColor = FlyLabTheme.Accent, TextAlign = ContentAlignment.MiddleCenter, Font = new Font("Segoe UI Semibold", 8F, FontStyle.Bold) });
+            return p;
+        }
+
+        private static Panel BuildTrafficDisplay(out Label state)
+        {
+            var panel = new Panel { Dock = DockStyle.Fill, BackColor = Color.FromArgb(8, 15, 26), Margin = new Padding(0, 8, 0, 8) };
+            panel.Controls.Add(new Label { Dock = DockStyle.Top, Height = 32, Text = "TRAFFIC", ForeColor = FlyLabTheme.TextMuted, TextAlign = ContentAlignment.MiddleCenter, Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold) });
+            state = new Label { Dock = DockStyle.Fill, Text = "NO SIGNAL", ForeColor = FlyLabTheme.Error, TextAlign = ContentAlignment.MiddleCenter, Font = new Font("Segoe UI Semibold", 24F, FontStyle.Bold) };
+            panel.Controls.Add(state);
+            state.BringToFront();
+            return panel;
+        }
+
+        private static Panel BuildConnectionDeck(Form form)
+        {
+            var panel = new Panel { Dock = DockStyle.Bottom, Height = 165, BackColor = FlyLabTheme.Surface, Padding = new Padding(10) };
+            var status = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 48, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, BackColor = FlyLabTheme.Surface };
+            status.Controls.Add(ProxyButton(form, "SIMULATORE", "Button_Simulator", 150));
+            status.Controls.Add(ProxyButton(form, "RETE", "Button_Network", 150));
+            status.Controls.Add(ProxyButton(form, "GLOBALE", "Button_Global", 150));
+
+            var join = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 48, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, BackColor = FlyLabTheme.Surface };
+            join.Controls.Add(ProxyButton(form, "CREA", "Button_Create", 110));
+            var combo = Find<ComboBox>(form, "Combo_Join");
+            if (combo != null)
+            {
+                combo.Width = 300; combo.Height = 32; combo.Margin = new Padding(8); combo.Font = new Font("Segoe UI", 10F);
+                join.Controls.Add(combo);
+            }
+            join.Controls.Add(ProxyButton(form, "COLLEGATI", "Button_Join", 130));
+
+            var info = new Label { Dock = DockStyle.Fill, Text = "CONNECTION DECK", ForeColor = FlyLabTheme.TextMuted, TextAlign = ContentAlignment.MiddleLeft, Font = new Font("Segoe UI Semibold", 9F) };
+            panel.Controls.Add(info);
+            panel.Controls.Add(join);
+            panel.Controls.Add(status);
+            return panel;
+        }
+
+        private void RefreshTrafficSignal()
+        {
+            if (networkButton == null || trafficState == null) return;
+
+            // JoinFS itself owns the functional colour/state of Button_Network.
+            // In L1 we infer signal from the same semantic Active colour used by JoinFS.
+            bool online = networkButton.BackColor == JoinFS.Properties.Settings.Default.ColourActive;
+            trafficState.Text = online ? "TCAS ONLINE" : "NO SIGNAL";
+            trafficState.ForeColor = online ? FlyLabTheme.Success : FlyLabTheme.Error;
+        }
+
+        private static void AddSection(FlowLayoutPanel flow, string text)
+        {
+            flow.Controls.Add(new Label { Width = 172, Height = 32, Margin = new Padding(4, 12, 4, 2), Text = text, ForeColor = FlyLabTheme.Accent, TextAlign = ContentAlignment.BottomLeft, Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold) });
+        }
+
+        private static void AddProxy(FlowLayoutPanel flow, Form form, string text, string sourceName)
+        {
+            flow.Controls.Add(ProxyButton(form, text, sourceName, 172));
+        }
+
+        private static void AddPlaceholder(FlowLayoutPanel flow, string text)
+        {
+            var b = ButtonStyle(text, 172);
+            b.Enabled = false;
+            b.Text += "  —";
+            flow.Controls.Add(b);
+        }
+
+        private static Button ProxyButton(Form form, string text, string sourceName, int width)
+        {
+            var b = ButtonStyle(text, width);
+            var source = Find<Control>(form, sourceName);
+            if (source != null)
+            {
+                b.Enabled = source.Enabled;
+                b.Visible = source.Visible;
+                b.Click += (_, __) => source.PerformClick();
+            }
+            else b.Enabled = false;
+            return b;
+        }
+
+        private static Button ButtonStyle(string text, int width)
+        {
+            var b = new Button { Width = width, Height = 36, Margin = new Padding(4), Text = text, BackColor = FlyLabTheme.Panel, ForeColor = FlyLabTheme.Text, FlatStyle = FlatStyle.Flat, UseVisualStyleBackColor = false, Font = new Font("Segoe UI Semibold", 9F) };
+            b.FlatAppearance.BorderColor = FlyLabTheme.GridLine;
+            return b;
+        }
+
+        private static T Find<T>(Control root, string name) where T : class
+        {
+            if (root == null) return null;
+            if (root.Name == name && root is T hit) return hit;
+            foreach (Control child in root.Controls)
+            {
+                var found = Find<T>(child, name);
+                if (found != null) return found;
+            }
+            if (root is MenuStrip menu)
+                foreach (ToolStripItem item in menu.Items)
+                {
+                    var found = FindItem<T>(item, name);
+                    if (found != null) return found;
+                }
+            if (root is StatusStrip status)
+                foreach (ToolStripItem item in status.Items)
+                {
+                    var found = FindItem<T>(item, name);
+                    if (found != null) return found;
+                }
+            return null;
+        }
+
+        private static T FindItem<T>(ToolStripItem item, string name) where T : class
+        {
+            if (item.Name == name && item is T hit) return hit;
+            if (item is ToolStripDropDownItem drop)
+                foreach (ToolStripItem child in drop.DropDownItems)
+                {
+                    var found = FindItem<T>(child, name);
+                    if (found != null) return found;
+                }
+            return null;
+        }
+    }
+}
+#endif
