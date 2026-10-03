@@ -14,6 +14,18 @@ namespace JoinFS.FlyLab.UI
     {
         private const string ApplicationIconFileName = "flylabfs.ico";
         private static Icon applicationIcon;
+        private static Bitmap brandBitmap;
+
+        public static Bitmap BrandBitmap
+        {
+            get
+            {
+                if (brandBitmap == null && ApplicationIcon != null)
+                    brandBitmap = ApplicationIcon.ToBitmap();
+
+                return brandBitmap;
+            }
+        }
 
         public static Icon ApplicationIcon
         {
