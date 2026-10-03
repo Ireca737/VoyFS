@@ -35,6 +35,8 @@ namespace JoinFS.FlyLab.UI
         public static void ApplyListForm(Form form, DataGridView grid, Button refreshButton, ContextMenuStrip contextMenu)
         {
             form.BackColor = Background;
+            if (FlyLabIcons.ApplicationIcon != null)
+                form.Icon = FlyLabIcons.ApplicationIcon;
             form.ForeColor = Text;
             form.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
 
