@@ -6,12 +6,14 @@ using System.Windows.Forms;
 using System.Net;
 using System.Globalization;
 using JoinFS.Properties;
+using JoinFS.FlyLab.UI;
 
 namespace JoinFS
 {
     public partial class SessionForm : Form
     {
         Main main;
+        private FlyLabDetailListChrome flyLabChrome;
 
         /// <summary>
         /// Item
@@ -227,6 +229,12 @@ namespace JoinFS
             Text_Receive.BackColor = Settings.Default.CommsBackColour;
             Text_Transmit.ForeColor = Settings.Default.CommsTextColour;
             Text_Transmit.BackColor = Settings.Default.CommsBackColour;
+
+            // Apply FlyLab presentation while preserving user-configurable connection and chat colours.
+            FlyLabTheme.ApplyListForm(this, DataGrid_UserList, Button_Refresh, Context_User);
+            FlyLabTheme.ApplyChatControls(Text_Receive, Text_Transmit, Button_Send, Check_Chat, Context_Chat);
+            FlyLabTheme.ApplyCaptions(label1, label2, label3);
+            flyLabChrome = FlyLabDetailListChrome.Attach(this, DataGrid_UserList, "PILOTI");
 
 #if NO_COMMS
             Settings.WriteInt32("SessionChat", 0);
@@ -662,7 +670,7 @@ namespace JoinFS
             SessionForm_Resize(null, null);
 
             // reset refresh button
-            Button_Refresh.BackColor = System.Drawing.SystemColors.ControlLight;
+            Button_Refresh.BackColor = FlyLabTheme.Primary;
         }
 
         /// <summary>
@@ -694,10 +702,10 @@ namespace JoinFS
                 else
                 {
                     // check if color requires changing
-                    if (Button_Refresh.BackColor != System.Drawing.Color.Yellow)
+                    if (Button_Refresh.BackColor != FlyLabTheme.Warning)
                     {
                         // reset refresh button
-                        Button_Refresh.BackColor = System.Drawing.Color.Yellow;
+                        Button_Refresh.BackColor = FlyLabTheme.Warning;
                     }
                 }
             }
