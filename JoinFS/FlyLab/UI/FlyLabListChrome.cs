@@ -29,14 +29,14 @@ namespace JoinFS.FlyLab.UI
             originalGridBottomGap = form.ClientSize.Height - grid.Bottom;
             originalGridRightGap = form.ClientSize.Width - grid.Right;
 
-            header = new Panel { Height = 90, Dock = DockStyle.Top, Padding = new Padding(16, 8, 12, 8) };
+            header = new Panel { Height = 90, Dock = DockStyle.Top, Padding = new Padding(16, 8, 0, 8) };
             var titleLabel = new Label {
                 AutoSize = true, Dock = DockStyle.Left, Text = title,
                 Font = new Font("Segoe UI Semibold", 14F, FontStyle.Bold)
             };
             var brandBlock = new Panel
             {
-                Width = 210,
+                Width = 190,
                 Dock = DockStyle.Right,
                 BackColor = FlyLabTheme.Background
             };
