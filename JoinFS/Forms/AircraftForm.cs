@@ -4,12 +4,14 @@ using System.Windows.Forms;
 using System.Drawing;
 using JoinFS.Properties;
 using System.Linq;
+using JoinFS.FlyLab.UI;
 
 namespace JoinFS
 {
     public partial class AircraftForm : Form
     {
         readonly Main main;
+        private FlyLabDetailListChrome flyLabChrome;
 
         /// <summary>
         /// Item in the list
@@ -188,6 +190,12 @@ namespace JoinFS
             Label_Details.Font = main.dataFont;
             Label_FlightPlan1.Font = main.dataFont;
             Label_FlightPlan2.Font = main.dataFont;
+
+            // Apply FlyLab presentation without changing the upstream Designer or aircraft logic.
+            FlyLabTheme.ApplyListForm(this, DataGrid_AircraftList, Button_Refresh, Context_Aircraft);
+            FlyLabTheme.ApplyDetailFields(Label_Details, Label_FlightPlan1, Label_FlightPlan2);
+            FlyLabTheme.ApplyCaptions(label1, label2, label3, label4, label6);
+            flyLabChrome = FlyLabDetailListChrome.Attach(this, DataGrid_AircraftList, "AEREO");
 
             // get vuids
             vuidCom1 = VariableMgr.CreateVuid("com active frequency:1");
@@ -707,7 +715,7 @@ namespace JoinFS
             RefreshDetails(GetSelectedItem());
 
             // reset refresh button
-            Button_Refresh.BackColor = System.Drawing.SystemColors.ControlLight;
+            Button_Refresh.BackColor = FlyLabTheme.Primary;
             // reset time
             resetRefreshButtonTime = main.ElapsedTime + RESET_REFRESH_BUTTON_DELAY;
         }
@@ -728,10 +736,10 @@ namespace JoinFS
                 else
                 {
                     // check if color requires changing
-                    if (Button_Refresh.BackColor != System.Drawing.Color.Yellow)
+                    if (Button_Refresh.BackColor != FlyLabTheme.Warning)
                     {
                         // reset refresh button
-                        Button_Refresh.BackColor = System.Drawing.Color.Yellow;
+                        Button_Refresh.BackColor = FlyLabTheme.Warning;
                     }
                 }
             }
