@@ -26,7 +26,7 @@ namespace JoinFS.FlyLab.UI
             {
                 Height = 90,
                 Dock = DockStyle.Top,
-                Padding = new Padding(16, 8, 12, 8)
+                Padding = new Padding(16, 8, 0, 8)
             };
 
             var titleLabel = new Label
@@ -39,7 +39,7 @@ namespace JoinFS.FlyLab.UI
 
             var brandBlock = new Panel
             {
-                Width = 210,
+                Width = 190,
                 Dock = DockStyle.Right,
                 BackColor = FlyLabTheme.Background
             };
