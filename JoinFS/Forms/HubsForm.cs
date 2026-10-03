@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using System.Net;
 using System.Globalization;
 using JoinFS.Properties;
+using JoinFS.FlyLab.UI;
 
 namespace JoinFS
 {
@@ -15,6 +16,7 @@ namespace JoinFS
         /// Main form
         /// </summary>
         readonly Main main;
+        private FlyLabDetailListChrome flyLabChrome;
 
         /// <summary>
         /// Item
@@ -355,7 +357,7 @@ namespace JoinFS
             RefreshDetails(GetSelectedItem());
 
             // reset refresh button
-            Button_Refresh.BackColor = System.Drawing.SystemColors.ControlLight;
+            Button_Refresh.BackColor = FlyLabTheme.Primary;
             // reset time
             resetRefreshButtonTime = main.ElapsedTime + RESET_REFRESH_BUTTON_DELAY;
         }
@@ -376,10 +378,10 @@ namespace JoinFS
                 else
                 {
                     // check if color requires changing
-                    if (Button_Refresh.BackColor != System.Drawing.Color.Yellow)
+                    if (Button_Refresh.BackColor != FlyLabTheme.Warning)
                     {
                         // reset refresh button
-                        Button_Refresh.BackColor = System.Drawing.Color.Yellow;
+                        Button_Refresh.BackColor = FlyLabTheme.Warning;
                     }
                 }
             }
@@ -668,6 +670,12 @@ namespace JoinFS
             // change font
             DataGrid_HubList.DefaultCellStyle.Font = main.dataFont;
             DataGrid_Hub.DefaultCellStyle.Font = main.dataFont;
+
+            // Apply FlyLab presentation while preserving upstream hub status colours and behavior.
+            FlyLabTheme.ApplyListForm(this, DataGrid_HubList, Button_Refresh, Context_Hub);
+            FlyLabTheme.ApplySecondaryGrid(DataGrid_Hub);
+            FlyLabTheme.ApplyCaptions(label1, label2, label3, label4);
+            flyLabChrome = FlyLabDetailListChrome.Attach(this, DataGrid_HubList, "HUB PUBBLICI");
         }
 
         private void HubsForm_Resize(object sender, EventArgs e)
