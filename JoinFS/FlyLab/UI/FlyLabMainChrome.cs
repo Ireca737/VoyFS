@@ -16,6 +16,11 @@ namespace JoinFS.FlyLab.UI
         private readonly Panel trafficDisplay;
         private readonly Label trafficState;
         private readonly Button networkButton;
+        private readonly Button simulatorButton;
+        private readonly Button globalButton;
+        private readonly Button networkIndicator;
+        private readonly Button simulatorIndicator;
+        private readonly Button globalIndicator;
 
         private FlyLabMainChrome(Form form)
         {
@@ -47,7 +52,7 @@ namespace JoinFS.FlyLab.UI
             host.Controls.Add(header);
 
             var avionics = BuildAvionicsStrip();
-            var connection = BuildConnectionDeck(form);
+            var connection = BuildConnectionDeck(form, out simulatorIndicator, out networkIndicator, out globalIndicator);
             trafficDisplay = BuildTrafficDisplay(out trafficState);
             trafficDisplay.Paint += (_, e) => PaintRadar(e.Graphics, trafficDisplay.ClientRectangle);
 
@@ -56,11 +61,13 @@ namespace JoinFS.FlyLab.UI
             instrument.Controls.Add(avionics);
 
             networkButton = Find<Button>(form, "Button_Network");
+            simulatorButton = Find<Button>(form, "Button_Simulator");
+            globalButton = Find<Button>(form, "Button_Global");
             var timer = new System.Windows.Forms.Timer { Interval = 250 };
-            timer.Tick += (_, __) => RefreshTrafficSignal();
+            timer.Tick += (_, __) => RefreshOperationalState();
             timer.Start();
 
-            RefreshTrafficSignal();
+            RefreshOperationalState();
             form.ResumeLayout(true);
         }
 
@@ -140,13 +147,16 @@ namespace JoinFS.FlyLab.UI
             return panel;
         }
 
-        private static Panel BuildConnectionDeck(Form form)
+        private static Panel BuildConnectionDeck(Form form, out Button simulatorIndicator, out Button networkIndicator, out Button globalIndicator)
         {
             var panel = new Panel { Dock = DockStyle.Bottom, Height = 125, BackColor = Color.FromArgb(8, 15, 26), Padding = new Padding(10, 4, 10, 6) };
             var status = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 48, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, BackColor = FlyLabTheme.Surface };
-            status.Controls.Add(ProxyButton(form, "SIMULATORE", "Button_Simulator", 150));
-            status.Controls.Add(ProxyButton(form, "RETE", "Button_Network", 150));
-            status.Controls.Add(ProxyButton(form, "GLOBALE", "Button_Global", 150));
+            simulatorIndicator = ProxyButton(form, "SIMULATORE", "Button_Simulator", 150);
+            networkIndicator = ProxyButton(form, "RETE", "Button_Network", 150);
+            globalIndicator = ProxyButton(form, "GLOBALE", "Button_Global", 150);
+            status.Controls.Add(simulatorIndicator);
+            status.Controls.Add(networkIndicator);
+            status.Controls.Add(globalIndicator);
 
             var join = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 48, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, BackColor = FlyLabTheme.Surface };
             join.Controls.Add(ProxyButton(form, "CREA", "Button_Create", 110));
@@ -165,16 +175,25 @@ namespace JoinFS.FlyLab.UI
             return panel;
         }
 
-        private void RefreshTrafficSignal()
+        private void RefreshOperationalState()
         {
-            if (networkButton == null || trafficState == null) return;
+            MirrorState(simulatorButton, simulatorIndicator);
+            MirrorState(networkButton, networkIndicator);
+            MirrorState(globalButton, globalIndicator);
 
-            // JoinFS itself owns the functional colour/state of Button_Network.
-            // In L1 we infer signal from the same semantic Active colour used by JoinFS.
+            if (networkButton == null || trafficState == null) return;
             bool online = networkButton.BackColor == JoinFS.Properties.Settings.Default.ColourActiveBackground;
             trafficState.Text = online ? string.Empty : "NO SIGNAL";
             trafficState.ForeColor = FlyLabTheme.Error;
             trafficDisplay.Invalidate();
+        }
+
+        private static void MirrorState(Button source, Button target)
+        {
+            if (source == null || target == null) return;
+            target.BackColor = source.BackColor;
+            target.ForeColor = source.ForeColor;
+            target.Enabled = source.Enabled;
         }
 
 
