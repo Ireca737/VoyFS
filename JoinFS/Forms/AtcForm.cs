@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using JoinFS.Properties;
+using JoinFS.FlyLab.UI;
 
 namespace JoinFS
 {
@@ -108,6 +109,9 @@ namespace JoinFS
 
             // change font
             DataGrid_AtcList.DefaultCellStyle.Font = main.dataFont;
+
+            // Apply the shared FlyLab list-form visual standard.
+            FlyLabTheme.ApplyListForm(this, DataGrid_AtcList, Button_Refresh, Context_ATC);
         }
 
         void AddAtc(Network.HubUser user)
@@ -246,7 +250,7 @@ namespace JoinFS
             }
 
             // reset refresh button
-            Button_Refresh.BackColor = System.Drawing.SystemColors.ControlLight;
+            Button_Refresh.BackColor = FlyLabTheme.Primary;
             // reset time
             resetRefreshButtonTime = main.ElapsedTime + RESET_REFRESH_BUTTON_DELAY;
         }
@@ -267,10 +271,10 @@ namespace JoinFS
                 else
                 {
                     // check if color requires changing
-                    if (Button_Refresh.BackColor != System.Drawing.Color.Yellow)
+                    if (Button_Refresh.BackColor != FlyLabTheme.Warning)
                     {
                         // reset refresh button
-                        Button_Refresh.BackColor = System.Drawing.Color.Yellow;
+                        Button_Refresh.BackColor = FlyLabTheme.Warning;
                     }
                 }
             }
