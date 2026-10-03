@@ -28,9 +28,15 @@ namespace JoinFS.FlyLab.UI
             form.MinimumSize = new Size(900, 620);
             form.Size = new Size(1040, 700);
 
+            // The upstream menu/status remain functional owners, but the FlyLab Main replaces their presentation.
+            var upstreamMenu = Find<MenuStrip>(form, "Main_Menu");
+            var upstreamStatus = Find<StatusStrip>(form, "StatusStrip_Main");
+
             var host = new Panel { Dock = DockStyle.Fill, BackColor = FlyLabTheme.Background, Padding = new Padding(12) };
             form.Controls.Add(host);
             host.BringToFront();
+            if (upstreamMenu != null) upstreamMenu.Visible = false;
+            if (upstreamStatus != null) upstreamStatus.Visible = false;
 
             var header = BuildHeader();
             var sidebar = BuildSidebar(form);
@@ -43,6 +49,7 @@ namespace JoinFS.FlyLab.UI
             var avionics = BuildAvionicsStrip();
             var connection = BuildConnectionDeck(form);
             trafficDisplay = BuildTrafficDisplay(out trafficState);
+            trafficDisplay.Paint += (_, e) => PaintRadar(e.Graphics, trafficDisplay.ClientRectangle);
 
             instrument.Controls.Add(trafficDisplay);
             instrument.Controls.Add(connection);
@@ -165,8 +172,50 @@ namespace JoinFS.FlyLab.UI
             // JoinFS itself owns the functional colour/state of Button_Network.
             // In L1 we infer signal from the same semantic Active colour used by JoinFS.
             bool online = networkButton.BackColor == JoinFS.Properties.Settings.Default.ColourActiveBackground;
-            trafficState.Text = online ? "TCAS ONLINE" : "NO SIGNAL";
-            trafficState.ForeColor = online ? FlyLabTheme.Success : FlyLabTheme.Error;
+            trafficState.Text = online ? string.Empty : "NO SIGNAL";
+            trafficState.ForeColor = FlyLabTheme.Error;
+            trafficDisplay.Invalidate();
+        }
+
+
+        private void PaintRadar(Graphics g, Rectangle bounds)
+        {
+            if (networkButton == null ||
+                networkButton.BackColor != JoinFS.Properties.Settings.Default.ColourActiveBackground)
+                return;
+
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            int cx = bounds.Width / 2;
+            int cy = bounds.Height / 2;
+            int radius = Math.Max(30, Math.Min(bounds.Width, bounds.Height) / 2 - 30);
+
+            using (var pen = new Pen(Color.FromArgb(80, FlyLabTheme.Accent), 1F))
+            {
+                for (int i = 1; i <= 4; i++)
+                {
+                    int r = radius * i / 4;
+                    g.DrawEllipse(pen, cx - r, cy - r, r * 2, r * 2);
+                }
+                g.DrawLine(pen, cx - radius, cy, cx + radius, cy);
+                g.DrawLine(pen, cx, cy - radius, cx, cy + radius);
+            }
+
+            using (var pen = new Pen(FlyLabTheme.Success, 2F))
+            {
+                Point[] ownship =
+                {
+                    new Point(cx, cy - 12),
+                    new Point(cx - 9, cy + 10),
+                    new Point(cx, cy + 5),
+                    new Point(cx + 9, cy + 10),
+                    new Point(cx, cy - 12)
+                };
+                g.DrawLines(pen, ownship);
+            }
+
+            using (var font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold))
+            using (var brush = new SolidBrush(FlyLabTheme.TextMuted))
+                g.DrawString("N", font, brush, cx - 5, cy - radius + 6);
         }
 
         private static void AddSection(FlowLayoutPanel flow, string text)
@@ -196,14 +245,12 @@ namespace JoinFS.FlyLab.UI
                 if (source is Control control)
                 {
                     b.Enabled = control.Enabled;
-                    b.Visible = control.Visible;
                     if (control is Button button)
                         b.Click += (_, __) => button.PerformClick();
                 }
                 else if (source is ToolStripItem item)
                 {
                     b.Enabled = item.Enabled;
-                    b.Visible = item.Visible;
                     b.Click += (_, __) => item.PerformClick();
                 }
             }
