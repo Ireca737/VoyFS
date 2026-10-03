@@ -4,12 +4,14 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.Globalization;
 using JoinFS.Properties;
+using JoinFS.FlyLab.UI;
 
 namespace JoinFS
 {
     public partial class ObjectsForm : Form
     {
         readonly Main main;
+        private FlyLabDetailListChrome flyLabChrome;
 
         /// <summary>
         /// Item
@@ -165,6 +167,17 @@ namespace JoinFS
 
             // change font
             DataGrid_ObjectList.DefaultCellStyle.Font = main.dataFont;
+
+            // Apply FlyLab presentation while preserving all upstream object controls and behavior.
+            FlyLabTheme.ApplyListForm(this, DataGrid_ObjectList, Button_Refresh, null);
+            FlyLabTheme.ApplyCaptions(label1);
+            Check_Group.ForeColor = FlyLabTheme.Text;
+            Check_ListIgnoredObjects.ForeColor = FlyLabTheme.Text;
+            Button_Substitute.BackColor = FlyLabTheme.Surface;
+            Button_Substitute.ForeColor = FlyLabTheme.Text;
+            Button_Substitute.FlatStyle = FlatStyle.Flat;
+            Button_Substitute.FlatAppearance.BorderColor = FlyLabTheme.GridLine;
+            flyLabChrome = FlyLabDetailListChrome.Attach(this, DataGrid_ObjectList, "OGGETTI");
         }
 
         /// <summary>
@@ -439,7 +452,7 @@ namespace JoinFS
             }
 
             // reset refresh button
-            Button_Refresh.BackColor = System.Drawing.SystemColors.ControlLight;
+            Button_Refresh.BackColor = FlyLabTheme.Primary;
             // reset time
             resetRefreshButtonTime = main.ElapsedTime + RESET_REFRESH_BUTTON_DELAY;
         }
@@ -486,10 +499,10 @@ namespace JoinFS
                 else
                 {
                     // check if color requires changing
-                    if (Button_Refresh.BackColor != System.Drawing.Color.Yellow)
+                    if (Button_Refresh.BackColor != FlyLabTheme.Warning)
                     {
                         // reset refresh button
-                        Button_Refresh.BackColor = System.Drawing.Color.Yellow;
+                        Button_Refresh.BackColor = FlyLabTheme.Warning;
                     }
                 }
             }
