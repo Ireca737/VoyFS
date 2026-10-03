@@ -15,6 +15,9 @@ using System.Globalization;
 using System.Reflection;
 using System.Security.Cryptography;
 using JoinFS.Properties;
+#if !CONSOLE
+using JoinFS.FlyLab.UI;
+#endif
 using System.Collections.Concurrent;
 
 namespace JoinFS
@@ -1460,7 +1463,7 @@ namespace JoinFS
             try
             {
                 // load application icon
-                icon = Properties.Resources.App;
+                icon = FlyLabIcons.ApplicationIcon ?? Properties.Resources.App;
             }
             catch (Exception ex)
             {
