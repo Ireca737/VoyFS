@@ -131,7 +131,7 @@ namespace JoinFS.FlyLab.UI
 
         private static Control Readout(string caption, string value)
         {
-            var p = new Panel { Dock = DockStyle.Fill, Margin = new Padding(4), BackColor = FlyLabTheme.Panel };
+            var p = new Panel { Dock = DockStyle.Fill, Margin = new Padding(4), BackColor = Color.FromArgb(8, 15, 26) };
             p.Controls.Add(new Label { Dock = DockStyle.Fill, Text = value, ForeColor = FlyLabTheme.Text, TextAlign = ContentAlignment.MiddleCenter, Font = new Font("Consolas", 15F, FontStyle.Bold) });
             p.Controls.Add(new Label { Dock = DockStyle.Top, Height = 20, Text = caption, ForeColor = FlyLabTheme.Accent, TextAlign = ContentAlignment.MiddleCenter, Font = new Font("Segoe UI Semibold", 8F, FontStyle.Bold) });
             return p;
