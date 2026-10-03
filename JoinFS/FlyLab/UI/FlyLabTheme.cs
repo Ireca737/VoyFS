@@ -26,10 +26,13 @@ namespace JoinFS.FlyLab.UI
         public static void ApplyListChrome(Panel header, Label title, Label brand, Panel footer, Label status)
         {
             header.BackColor = Background;
-            footer.BackColor = Background;
             title.ForeColor = Text;
             brand.ForeColor = Accent;
-            status.ForeColor = TextMuted;
+
+            if (footer != null)
+                footer.BackColor = Background;
+            if (status != null)
+                status.ForeColor = TextMuted;
         }
 
         public static void ApplyListForm(Form form, DataGridView grid, Button refreshButton, ContextMenuStrip contextMenu)
