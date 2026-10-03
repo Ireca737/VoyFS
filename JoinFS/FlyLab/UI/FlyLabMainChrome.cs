@@ -25,8 +25,8 @@ namespace JoinFS.FlyLab.UI
             form.BackColor = FlyLabTheme.Background;
             form.ForeColor = FlyLabTheme.Text;
             form.Font = new Font("Segoe UI", 9F);
-            form.MinimumSize = new Size(900, 620);
-            form.Size = new Size(1040, 700);
+            form.MinimumSize = new Size(820, 760);
+            form.Size = new Size(900, 820);
 
             // The upstream menu/status remain functional owners, but the FlyLab Main replaces their presentation.
             var upstreamMenu = Find<MenuStrip>(form, "Main_Menu");
@@ -83,7 +83,7 @@ namespace JoinFS.FlyLab.UI
 
         private static Panel BuildSidebar(Form form)
         {
-            var panel = new Panel { Dock = DockStyle.Left, Width = 205, BackColor = FlyLabTheme.Background, Padding = new Padding(0, 8, 12, 0), AutoScroll = true };
+            var panel = new Panel { Dock = DockStyle.Left, Width = 185, BackColor = FlyLabTheme.Background, Padding = new Padding(0, 8, 12, 0), AutoScroll = true };
             var flow = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoScroll = true, BackColor = FlyLabTheme.Background };
             panel.Controls.Add(flow);
 
@@ -111,8 +111,8 @@ namespace JoinFS.FlyLab.UI
 
         private static Panel BuildAvionicsStrip()
         {
-            var panel = new Panel { Dock = DockStyle.Top, Height = 78, BackColor = FlyLabTheme.Surface, Padding = new Padding(8) };
-            var table = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 4, RowCount = 1, BackColor = FlyLabTheme.Surface };
+            var panel = new Panel { Dock = DockStyle.Top, Height = 58, BackColor = Color.FromArgb(8, 15, 26), Padding = new Padding(4, 2, 4, 0) };
+            var table = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 4, RowCount = 1, BackColor = Color.FromArgb(8, 15, 26) };
             for (int i = 0; i < 4; i++) table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
             table.Controls.Add(Readout("COM 1", "---.---"), 0, 0);
             table.Controls.Add(Readout("COM 2", "---.---"), 1, 0);
@@ -142,7 +142,7 @@ namespace JoinFS.FlyLab.UI
 
         private static Panel BuildConnectionDeck(Form form)
         {
-            var panel = new Panel { Dock = DockStyle.Bottom, Height = 165, BackColor = FlyLabTheme.Surface, Padding = new Padding(10) };
+            var panel = new Panel { Dock = DockStyle.Bottom, Height = 125, BackColor = Color.FromArgb(8, 15, 26), Padding = new Padding(10, 4, 10, 6) };
             var status = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 48, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, BackColor = FlyLabTheme.Surface };
             status.Controls.Add(ProxyButton(form, "SIMULATORE", "Button_Simulator", 150));
             status.Controls.Add(ProxyButton(form, "RETE", "Button_Network", 150));
@@ -158,7 +158,7 @@ namespace JoinFS.FlyLab.UI
             }
             join.Controls.Add(ProxyButton(form, "COLLEGATI", "Button_Join", 130));
 
-            var info = new Label { Dock = DockStyle.Fill, Text = "CONNECTION DECK", ForeColor = FlyLabTheme.TextMuted, TextAlign = ContentAlignment.MiddleLeft, Font = new Font("Segoe UI Semibold", 9F) };
+            var info = new Label { Dock = DockStyle.Fill, Text = "", ForeColor = FlyLabTheme.TextMuted, TextAlign = ContentAlignment.MiddleLeft, Font = new Font("Segoe UI Semibold", 9F), BackColor = Color.FromArgb(8, 15, 26) };
             panel.Controls.Add(info);
             panel.Controls.Add(join);
             panel.Controls.Add(status);
@@ -220,17 +220,17 @@ namespace JoinFS.FlyLab.UI
 
         private static void AddSection(FlowLayoutPanel flow, string text)
         {
-            flow.Controls.Add(new Label { Width = 172, Height = 32, Margin = new Padding(4, 12, 4, 2), Text = text, ForeColor = FlyLabTheme.Accent, TextAlign = ContentAlignment.BottomLeft, Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold) });
+            flow.Controls.Add(new Label { Width = 152, Height = 32, Margin = new Padding(4, 12, 4, 2), Text = text, ForeColor = FlyLabTheme.Accent, TextAlign = ContentAlignment.BottomLeft, Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold) });
         }
 
         private static void AddProxy(FlowLayoutPanel flow, Form form, string text, string sourceName)
         {
-            flow.Controls.Add(ProxyButton(form, text, sourceName, 172));
+            flow.Controls.Add(ProxyButton(form, text, sourceName, 152));
         }
 
         private static void AddPlaceholder(FlowLayoutPanel flow, string text)
         {
-            var b = ButtonStyle(text, 172);
+            var b = ButtonStyle(text, 152);
             b.Enabled = false;
             b.Text += "  —";
             flow.Controls.Add(b);
