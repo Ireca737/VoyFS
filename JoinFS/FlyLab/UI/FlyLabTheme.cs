@@ -23,6 +23,15 @@ namespace JoinFS.FlyLab.UI
         public static readonly Color GridLine = Color.FromArgb(51, 65, 85);
         public static readonly Color Selection = Color.FromArgb(30, 64, 175);
 
+        public static void ApplyListChrome(Panel header, Label title, Label brand, Panel footer, Label status)
+        {
+            header.BackColor = Background;
+            footer.BackColor = Background;
+            title.ForeColor = Text;
+            brand.ForeColor = Accent;
+            status.ForeColor = TextMuted;
+        }
+
         public static void ApplyListForm(Form form, DataGridView grid, Button refreshButton, ContextMenuStrip contextMenu)
         {
             form.BackColor = Background;
