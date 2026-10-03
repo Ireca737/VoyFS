@@ -112,7 +112,7 @@ namespace JoinFS
 
             // Apply the shared FlyLab list-form visual standard.
             FlyLabTheme.ApplyListForm(this, DataGrid_AtcList, Button_Refresh, Context_ATC);
-            FlyLabTheme.ApplyListChrome(Panel_Header, Label_HeaderTitle, Label_HeaderBrand, Panel_Footer, Label_Status);
+            flyLabChrome = FlyLabListChrome.Attach(this, DataGrid_AtcList, Button_Refresh, "ATC");
         }
 
         void AddAtc(Network.HubUser user)
@@ -220,7 +220,7 @@ namespace JoinFS
 
             // update window title and FlyLab footer status
             Text = title + " (" + itemList.Count + ")";
-            Label_Status.Text = itemList.Count + ((itemList.Count == 1) ? " ATC available" : " ATC available");
+            flyLabChrome?.SetCount(itemList.Count, "ATC");
 
             // rows
             DataGridViewRow[] rows = new DataGridViewRow[itemList.Count];
