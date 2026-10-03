@@ -1,0 +1,41 @@
+name: Build Validation
+
+on:
+  push:
+    branches:
+      - main
+      - 'feat/**'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.configuration }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration:
+          - FS2020
+          - FS2024
+          - FSX
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore JoinFS/JoinFS.csproj -p:Configuration=${{ matrix.configuration }}
+
+      - name: Build
+        run: dotnet build JoinFS/JoinFS.csproj --configuration ${{ matrix.configuration }} --no-restore
