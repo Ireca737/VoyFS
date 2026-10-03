@@ -35,6 +35,41 @@ namespace JoinFS.FlyLab.UI
                 status.ForeColor = TextMuted;
         }
 
+        public static void ApplyChatControls(RichTextBox receive, TextBox transmit, Button sendButton, CheckBox chatToggle, ContextMenuStrip contextMenu)
+        {
+            // Chat foreground/background remain user-configurable in JoinFS Settings.
+            if (transmit != null)
+            {
+                transmit.BorderStyle = BorderStyle.FixedSingle;
+                transmit.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            }
+
+            if (receive != null)
+            {
+                receive.BorderStyle = BorderStyle.FixedSingle;
+                receive.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            }
+
+            if (sendButton != null)
+            {
+                sendButton.BackColor = Primary;
+                sendButton.ForeColor = Color.White;
+                sendButton.FlatStyle = FlatStyle.Flat;
+                sendButton.FlatAppearance.BorderSize = 0;
+                sendButton.UseVisualStyleBackColor = false;
+            }
+
+            if (chatToggle != null)
+                chatToggle.ForeColor = Text;
+
+            if (contextMenu != null)
+            {
+                contextMenu.BackColor = Surface;
+                contextMenu.ForeColor = Text;
+                contextMenu.RenderMode = ToolStripRenderMode.System;
+            }
+        }
+
         public static void ApplySecondaryGrid(DataGridView grid)
         {
             if (grid == null)
