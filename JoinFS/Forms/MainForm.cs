@@ -9,6 +9,7 @@ using System.Globalization;
 using JoinFS.Properties;
 using System.Net.Http;
 using System.Threading.Tasks;
+using JoinFS.FlyLab.UI;
 
 
 namespace JoinFS
@@ -51,6 +52,9 @@ namespace JoinFS
         /// </summary>
         Main main;
 
+        // FlyLabFS presentation layer. JoinFS remains the functional owner of the controls.
+        FlyLabMainChrome flyLabChrome;
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -62,6 +66,9 @@ namespace JoinFS
 
                 // set main
                 this.main = main;
+
+                // Build the FlyLabFS operational dashboard around the existing JoinFS controls.
+                flyLabChrome = FlyLabMainChrome.Attach(this);
 
                 // Button_SimBrief spans the same width and left/right alignment as Button_Global (Join Global),
                 // just on the Flight Plan row - computed from Button_Global rather than hardcoded so it stays
