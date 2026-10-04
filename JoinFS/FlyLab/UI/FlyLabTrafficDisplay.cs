@@ -18,6 +18,7 @@ namespace JoinFS.FlyLab.UI
         private double phantomBearingDeg;
         private string phantomCallsign = string.Empty;
         private int phantomRelativeAltitudeHundreds;
+        private int ownshipHeadingDeg;
 
         internal bool NetworkAvailable
         {
@@ -37,6 +38,12 @@ namespace JoinFS.FlyLab.UI
             phantomBearingDeg = bearingDeg;
             phantomCallsign = callsign ?? string.Empty;
             phantomRelativeAltitudeHundreds = relativeAltitudeHundreds;
+            Invalidate();
+        }
+
+        internal void SetOwnshipHeading(int headingDeg)
+        {
+            ownshipHeadingDeg = ((headingDeg % 360) + 360) % 360;
             Invalidate();
         }
 
@@ -79,7 +86,8 @@ namespace JoinFS.FlyLab.UI
 
             int cx = ClientSize.Width / 2;
             int cy = ClientSize.Height / 2;
-            int radius = Math.Max(30, Math.Min(ClientSize.Width, ClientSize.Height) / 2 - 42);
+            // Leave a little more vertical breathing room for the live heading labels.
+            int radius = Math.Max(30, Math.Min(ClientSize.Width, ClientSize.Height) / 2 - 58);
 
             using (var pen = new Pen(Color.FromArgb(80, FlyLabTheme.Accent), 1F))
             {
@@ -105,9 +113,25 @@ namespace JoinFS.FlyLab.UI
                 g.DrawLines(pen, ownship);
             }
 
+            // Live ownship orientation references. The radar remains North-Up for now;
+            // these values give the pilot heading, reciprocal and left/right beams.
+            int heading = ownshipHeadingDeg;
+            int reciprocal = (heading + 180) % 360;
+            int rightBeam = (heading + 90) % 360;
+            int leftBeam = (heading + 270) % 360;
             using (var font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold))
             using (var brush = new SolidBrush(FlyLabTheme.TextMuted))
-                g.DrawString("N", font, brush, cx - 5, cy - radius + 6);
+            {
+                DrawCentered(g, heading.ToString("D3") + "°", font, brush, cx, cy - radius - 20);
+                DrawCentered(g, reciprocal.ToString("D3") + "°", font, brush, cx, cy + radius + 6);
+
+                string leftText = leftBeam.ToString("D3") + "°";
+                string rightText = rightBeam.ToString("D3") + "°";
+                var leftSize = g.MeasureString(leftText, font);
+                var rightSize = g.MeasureString(rightText, font);
+                g.DrawString(leftText, font, brush, cx - radius - leftSize.Width - 8, cy - leftSize.Height / 2F);
+                g.DrawString(rightText, font, brush, cx + radius + 8, cy - rightSize.Height / 2F);
+            }
 
             // L3.1 diagnostic phantom: a fixed geographic point captured relative to the
             // ownship at startup. Full scale is temporarily 10 NM for this geometry test.
@@ -135,6 +159,12 @@ namespace JoinFS.FlyLab.UI
                     g.DrawString(altitude, targetFont, targetBrush, tx + 8, ty + 1);
                 }
             }
+        }
+
+        private static void DrawCentered(Graphics g, string text, Font font, Brush brush, float x, float y)
+        {
+            var size = g.MeasureString(text, font);
+            g.DrawString(text, font, brush, x - size.Width / 2F, y);
         }
     }
 }
