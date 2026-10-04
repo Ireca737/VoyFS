@@ -274,7 +274,9 @@ namespace JoinFS.FlyLab.UI
             var ownPosition = ownship?.Position;
             if (ownPosition != null)
             {
-                int headingDeg = (int)Math.Round(ownPosition.angles.y * 180.0 / Math.PI);
+                // JoinFS/Sim heading is offset by -90 degrees from the aviation
+                // compass convention used by the FlyLab display (confirmed against AircraftForm).
+                int headingDeg = (int)Math.Round(ownPosition.angles.y * 180.0 / Math.PI) + 90;
                 trafficDisplay.SetOwnshipHeading(headingDeg);
             }
 
