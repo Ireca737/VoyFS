@@ -108,7 +108,7 @@ namespace JoinFS.FlyLab.UI
             const int trafficHeaderHeight = 44;
             int availableHeight = Math.Max(80, ClientSize.Height - trafficHeaderHeight);
             int cy = trafficHeaderHeight + availableHeight / 2;
-            int radius = Math.Max(30, Math.Min(ClientSize.Width, availableHeight) / 2 - 30);
+            int radius = Math.Max(30, Math.Min(ClientSize.Width, availableHeight) / 2 - 34);
 
             using (var pen = new Pen(Color.FromArgb(80, FlyLabTheme.Accent), 1F))
             {
