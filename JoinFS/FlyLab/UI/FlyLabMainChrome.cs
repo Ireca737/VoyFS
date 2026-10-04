@@ -35,6 +35,9 @@ namespace JoinFS.FlyLab.UI
         private readonly uint vuidSquawk;
         private bool avionicsWasAvailable;
         private DateTime avionicsPowerOnAt;
+        private bool phantomCaptured;
+        private double phantomLatitude;
+        private double phantomLongitude;
 
         private FlyLabMainChrome(Form form, Main main)
         {
@@ -263,6 +266,45 @@ namespace JoinFS.FlyLab.UI
             }
 
             avionicsWasAvailable = avionicsAvailable;
+
+            // L3.1 geometry test: capture one fixed geographic phantom 3 NM at 045°
+            // from the first valid ownship position. Moving the aircraft afterwards must
+            // change the phantom's relative distance/bearing without moving the phantom.
+            var ownPosition = ownship?.Position;
+            if (!phantomCaptured && ownPosition != null)
+            {
+                const double distanceNm = 3.0;
+                const double bearingRad = Math.PI / 4.0;
+                const double earthRadiusNm = 3440.065;
+                double lat1 = ownPosition.geo.x * Math.PI / 180.0;
+                double lon1 = ownPosition.geo.z * Math.PI / 180.0;
+                double angularDistance = distanceNm / earthRadiusNm;
+
+                double lat2 = Math.Asin(
+                    Math.Sin(lat1) * Math.Cos(angularDistance) +
+                    Math.Cos(lat1) * Math.Sin(angularDistance) * Math.Cos(bearingRad));
+                double lon2 = lon1 + Math.Atan2(
+                    Math.Sin(bearingRad) * Math.Sin(angularDistance) * Math.Cos(lat1),
+                    Math.Cos(angularDistance) - Math.Sin(lat1) * Math.Sin(lat2));
+
+                phantomLatitude = lat2 * 180.0 / Math.PI;
+                phantomLongitude = lon2 * 180.0 / Math.PI;
+                phantomCaptured = true;
+            }
+
+            if (phantomCaptured && ownPosition != null)
+            {
+                double distanceMetres = Vector.GeodesicDistance(
+                    phantomLatitude, phantomLongitude, ownPosition.geo.x, ownPosition.geo.z);
+                double distanceNm = distanceMetres * 0.00053995680346;
+                double bearing = Vector.GeodesicBearing(
+                    ownPosition.geo.x, ownPosition.geo.z, phantomLatitude, phantomLongitude);
+                trafficDisplay.SetPhantom(true, distanceNm, bearing);
+            }
+            else
+            {
+                trafficDisplay.SetPhantom(false, 0.0, 0.0);
+            }
 
             if (networkButton == null || trafficDisplay == null) return;
 
