@@ -179,8 +179,18 @@ namespace JoinFS.FlyLab.UI
             xpdrReadout.Height = 30;
             if (xpdrReadout is FlowLayoutPanel xpdrFlow)
             {
-                xpdrFlow.FlowDirection = FlowDirection.RightToLeft;
-                xpdrFlow.RightToLeft = RightToLeft.Yes;
+                // Keep normal text order ("XPDR: 2222") while aligning the whole
+                // readout group to the right edge.
+                xpdrFlow.FlowDirection = FlowDirection.LeftToRight;
+                xpdrFlow.RightToLeft = RightToLeft.No;
+                xpdrFlow.WrapContents = false;
+                xpdrFlow.Dock = DockStyle.None;
+                xpdrFlow.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+                xpdrFlow.AutoSize = true;
+                xpdrFlow.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+                xpdrFlow.Location = new Point(right.ClientSize.Width - xpdrFlow.PreferredSize.Width - 10, 1);
+                right.Resize += (_, __) =>
+                    xpdrFlow.Left = right.ClientSize.Width - xpdrFlow.PreferredSize.Width - 10;
             }
             right.Controls.Add(xpdrReadout);
 
