@@ -144,10 +144,40 @@ namespace JoinFS.FlyLab.UI
 
         private static Control Readout(string caption, out Label value)
         {
-            var p = new Panel { Dock = DockStyle.Fill, Margin = new Padding(4), BackColor = Color.FromArgb(8, 15, 26) };
-            value = new Label { Dock = DockStyle.Fill, Text = string.Empty, ForeColor = FlyLabTheme.Text, TextAlign = ContentAlignment.MiddleCenter, Font = new Font("Consolas", 15F, FontStyle.Bold), BackColor = Color.Transparent };
-            p.Controls.Add(value);
-            p.Controls.Add(new Label { Dock = DockStyle.Top, Height = 20, Text = caption, ForeColor = FlyLabTheme.Accent, TextAlign = ContentAlignment.MiddleCenter, Font = new Font("Segoe UI Semibold", 8F, FontStyle.Bold), BackColor = Color.Transparent });
+            // Use explicit rows rather than overlapping Dock=Fill/Dock=Top labels.
+            // This keeps both the caption and the live JoinFS value visible at all sizes.
+            var p = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                Margin = new Padding(4),
+                BackColor = Color.FromArgb(8, 15, 26),
+                ColumnCount = 1,
+                RowCount = 2
+            };
+            p.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            p.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+            p.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+
+            var captionLabel = new Label
+            {
+                Dock = DockStyle.Fill,
+                Text = caption,
+                ForeColor = FlyLabTheme.Accent,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Font = new Font("Segoe UI Semibold", 8F, FontStyle.Bold),
+                BackColor = Color.Transparent
+            };
+            value = new Label
+            {
+                Dock = DockStyle.Fill,
+                Text = string.Empty,
+                ForeColor = FlyLabTheme.Text,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Font = new Font("Consolas", 15F, FontStyle.Bold),
+                BackColor = Color.Transparent
+            };
+            p.Controls.Add(captionLabel, 0, 0);
+            p.Controls.Add(value, 0, 1);
             return p;
         }
 
