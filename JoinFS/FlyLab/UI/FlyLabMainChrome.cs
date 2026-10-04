@@ -38,6 +38,7 @@ namespace JoinFS.FlyLab.UI
         private bool phantomCaptured;
         private double phantomLongitude;
         private double phantomLatitude;
+        private double phantomAltitudeFeet;
 
         private FlyLabMainChrome(Form form, Main main)
         {
@@ -291,6 +292,7 @@ namespace JoinFS.FlyLab.UI
 
                 phantomLongitude = lon2;
                 phantomLatitude = lat2;
+                phantomAltitudeFeet = ownPosition.geo.y * Sim.FEET_PER_METRE;
                 phantomCaptured = true;
             }
 
@@ -302,11 +304,16 @@ namespace JoinFS.FlyLab.UI
                 double bearingRad = Vector.GeodesicBearing(
                     ownPosition.geo.x, ownPosition.geo.z, phantomLongitude, phantomLatitude);
                 double bearingDeg = bearingRad * 180.0 / Math.PI;
-                trafficDisplay.SetPhantom(true, distanceNm, bearingDeg);
+                double ownAltitudeFeet = ownPosition.geo.y * Sim.FEET_PER_METRE;
+                int relativeAltitudeHundreds = (int)Math.Round(
+                    (phantomAltitudeFeet - ownAltitudeFeet) / 100.0,
+                    MidpointRounding.AwayFromZero);
+                string targetCallsign = ownship.flightPlan.callsign ?? string.Empty;
+                trafficDisplay.SetPhantom(true, distanceNm, bearingDeg, targetCallsign, relativeAltitudeHundreds);
             }
             else
             {
-                trafficDisplay.SetPhantom(false, 0.0, 0.0);
+                trafficDisplay.SetPhantom(false, 0.0, 0.0, string.Empty, 0);
             }
 
             if (networkButton == null || trafficDisplay == null) return;
