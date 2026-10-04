@@ -80,7 +80,7 @@ namespace JoinFS.FlyLab.UI
                 var size = g.MeasureString(headingText, headingFont);
                 var box = new RectangleF(
                     (ClientSize.Width - Math.Max(78F, size.Width + 20F)) / 2F,
-                    44F,
+                    5F,
                     Math.Max(78F, size.Width + 20F),
                     34F);
                 g.DrawRectangle(headingPen, box.X, box.Y, box.Width, box.Height);
@@ -102,9 +102,13 @@ namespace JoinFS.FlyLab.UI
             }
 
             int cx = ClientSize.Width / 2;
-            int cy = ClientSize.Height / 2;
-            // Leave a little more vertical breathing room for the live heading labels.
-            int radius = Math.Max(30, Math.Min(ClientSize.Width, ClientSize.Height) / 2 - 58);
+            // Reserve a real header band inside the Traffic Display for the heading box.
+            // The rose begins below it, so the heading is no longer competing with the
+            // separate COM/XPDR avionics strip.
+            const int trafficHeaderHeight = 44;
+            int availableHeight = Math.Max(80, ClientSize.Height - trafficHeaderHeight);
+            int cy = trafficHeaderHeight + availableHeight / 2;
+            int radius = Math.Max(30, Math.Min(ClientSize.Width, availableHeight) / 2 - 30);
 
             using (var pen = new Pen(Color.FromArgb(80, FlyLabTheme.Accent), 1F))
             {
