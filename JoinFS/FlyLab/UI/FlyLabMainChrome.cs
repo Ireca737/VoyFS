@@ -171,7 +171,7 @@ namespace JoinFS.FlyLab.UI
                 Text = caption,
                 ForeColor = FlyLabTheme.Accent,
                 TextAlign = ContentAlignment.MiddleCenter,
-                Font = new Font("Segoe UI Semibold", 8F, FontStyle.Bold),
+                Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold),
                 BackColor = Color.Transparent
             };
             value = new Label
