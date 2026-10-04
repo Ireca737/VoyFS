@@ -67,7 +67,7 @@ namespace JoinFS.FlyLab.UI
 
             var header = BuildHeader();
             var sidebar = BuildSidebar(form);
-            var instrument = new Panel { Dock = DockStyle.Fill, BackColor = FlyLabTheme.Panel, Padding = new Padding(6) };
+            var instrument = new Panel { Dock = DockStyle.Fill, BackColor = FlyLabTheme.Panel, Padding = new Padding(3) };
 
             host.Controls.Add(instrument);
             host.Controls.Add(sidebar);
