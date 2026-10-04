@@ -399,11 +399,12 @@ namespace JoinFS.FlyLab.UI
                     (phantomAltitudeFeet - ownAltitudeFeet) / 100.0,
                     MidpointRounding.AwayFromZero);
                 string targetCallsign = ownship.flightPlan.callsign ?? string.Empty;
-                trafficDisplay.SetPhantom(true, distanceNm, bearingDeg, targetCallsign, relativeAltitudeHundreds);
+                // Diagnostic only: exercise the TCAS climb trend before real network traffic is wired in.
+                trafficDisplay.SetPhantom(true, distanceNm, bearingDeg, targetCallsign, relativeAltitudeHundreds, 600.0);
             }
             else
             {
-                trafficDisplay.SetPhantom(false, 0.0, 0.0, string.Empty, 0);
+                trafficDisplay.SetPhantom(false, 0.0, 0.0, string.Empty, 0, 0.0);
             }
 
             if (networkButton == null || trafficDisplay == null) return;
