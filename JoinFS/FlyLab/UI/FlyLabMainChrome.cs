@@ -246,8 +246,8 @@ namespace JoinFS.FlyLab.UI
             {
                 double powerOnMs = (DateTime.UtcNow - avionicsPowerOnAt).TotalMilliseconds;
                 SetReadoutVisible(callsignCaption, callsignValue, powerOnMs >= 0);
-                SetReadoutVisible(com1Caption, com1Value, powerOnMs >= 400);
-                SetReadoutVisible(com2Caption, com2Value, powerOnMs >= 600);
+                SetReadoutVisible(com1Caption, com1Value, powerOnMs >= 800);
+                SetReadoutVisible(com2Caption, com2Value, powerOnMs >= 2400);
                 SetReadoutVisible(xpdrCaption, xpdrValue, powerOnMs >= 1200);
 
                 string com1 = ownship.variableSet.GetFrequency(vuidCom1).ToString("F3");
