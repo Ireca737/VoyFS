@@ -250,12 +250,8 @@ namespace JoinFS.FlyLab.UI
                 xpdrCaption.Text = "XPDR:  " + xpdr;
                 callsignCaption.Text = "CALLSIGN:  " + callsign;
 
-                // Keep the separate value labels empty; they are retained only so the
-                // readout structure can evolve without changing the JoinFS data binding.
-                com1Caption.Text = "COM 1";
-                com2Caption.Text = "COM 2";
-                xpdrCaption.Text = "XPDR";
-                callsignCaption.Text = "CALLSIGN";
+                // Keep the separate value labels empty; the live values are intentionally
+                // rendered inline with the four captions.
                 com1Value.Text = string.Empty;
                 com2Value.Text = string.Empty;
                 xpdrValue.Text = string.Empty;
@@ -263,6 +259,10 @@ namespace JoinFS.FlyLab.UI
             }
             else
             {
+                com1Caption.Text = "COM 1";
+                com2Caption.Text = "COM 2";
+                xpdrCaption.Text = "XPDR";
+                callsignCaption.Text = "CALLSIGN";
                 com1Value.Text = string.Empty;
                 com2Value.Text = string.Empty;
                 xpdrValue.Text = string.Empty;
