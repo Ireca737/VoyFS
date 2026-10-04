@@ -16,6 +16,8 @@ namespace JoinFS.FlyLab.UI
         private bool phantomAvailable;
         private double phantomDistanceNm;
         private double phantomBearingDeg;
+        private string phantomCallsign = string.Empty;
+        private int phantomRelativeAltitudeHundreds;
 
         internal bool NetworkAvailable
         {
@@ -28,11 +30,13 @@ namespace JoinFS.FlyLab.UI
             }
         }
 
-        internal void SetPhantom(bool available, double distanceNm, double bearingDeg)
+        internal void SetPhantom(bool available, double distanceNm, double bearingDeg, string callsign, int relativeAltitudeHundreds)
         {
             phantomAvailable = available;
             phantomDistanceNm = distanceNm;
             phantomBearingDeg = bearingDeg;
+            phantomCallsign = callsign ?? string.Empty;
+            phantomRelativeAltitudeHundreds = relativeAltitudeHundreds;
             Invalidate();
         }
 
@@ -121,7 +125,15 @@ namespace JoinFS.FlyLab.UI
 
                 using (var targetFont = new Font("Segoe UI Semibold", 8F, FontStyle.Bold))
                 using (var targetBrush = new SolidBrush(FlyLabTheme.Warning))
-                    g.DrawString("TEST01", targetFont, targetBrush, tx + 8, ty - 8);
+                {
+                    string altitude = phantomRelativeAltitudeHundreds > 0
+                        ? "+" + phantomRelativeAltitudeHundreds.ToString("D2")
+                        : phantomRelativeAltitudeHundreds < 0
+                            ? phantomRelativeAltitudeHundreds.ToString("D2")
+                            : "00";
+                    g.DrawString(phantomCallsign, targetFont, targetBrush, tx + 8, ty - 12);
+                    g.DrawString(altitude, targetFont, targetBrush, tx + 8, ty + 1);
+                }
             }
         }
     }
