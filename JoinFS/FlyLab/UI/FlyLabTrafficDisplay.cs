@@ -172,7 +172,10 @@ namespace JoinFS.FlyLab.UI
             {
                 const double rangeNm = 10.0;
                 double clampedDistance = Math.Min(rangeNm, Math.Max(0.0, phantomDistanceNm));
-                double angle = phantomBearingDeg * Math.PI / 180.0;
+                // Heading-Up display: rotate geographic target bearing into the
+                // ownship reference frame. 0° relative is straight ahead, 180° astern.
+                double relativeBearingDeg = ((phantomBearingDeg - ownshipHeadingDeg) % 360.0 + 360.0) % 360.0;
+                double angle = relativeBearingDeg * Math.PI / 180.0;
                 float targetRadius = (float)(radius * clampedDistance / rangeNm);
                 float tx = cx + (float)(Math.Sin(angle) * targetRadius);
                 float ty = cy - (float)(Math.Cos(angle) * targetRadius);
