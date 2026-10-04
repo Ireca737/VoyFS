@@ -26,6 +26,10 @@ namespace JoinFS.FlyLab.UI
         private readonly Label com2Value;
         private readonly Label xpdrValue;
         private readonly Label callsignValue;
+        private readonly Label com1Caption;
+        private readonly Label com2Caption;
+        private readonly Label xpdrCaption;
+        private readonly Label callsignCaption;
         private readonly Main main;
         private readonly uint vuidCom1;
         private readonly uint vuidCom2;
@@ -64,7 +68,7 @@ namespace JoinFS.FlyLab.UI
             host.Controls.Add(sidebar);
             host.Controls.Add(header);
 
-            avionicsStrip = BuildAvionicsStrip(out com1Value, out com2Value, out xpdrValue, out callsignValue);
+            avionicsStrip = BuildAvionicsStrip(out com1Caption, out com1Value, out com2Caption, out com2Value, out xpdrCaption, out xpdrValue, out callsignCaption, out callsignValue);
             var connection = BuildConnectionDeck(form, out simulatorIndicator, out networkIndicator, out globalIndicator);
             trafficDisplay = BuildTrafficDisplay(out trafficState);
             trafficDisplay.Paint += (_, e) => PaintRadar(e.Graphics, trafficDisplay.ClientRectangle);
@@ -132,20 +136,20 @@ namespace JoinFS.FlyLab.UI
             return panel;
         }
 
-        private static Panel BuildAvionicsStrip(out Label com1, out Label com2, out Label xpdr, out Label callsign)
+        private static Panel BuildAvionicsStrip(out Label com1Caption, out Label com1, out Label com2Caption, out Label com2, out Label xpdrCaption, out Label xpdr, out Label callsignCaption, out Label callsign)
         {
             var panel = new Panel { Dock = DockStyle.Top, Height = 58, BackColor = Color.FromArgb(8, 15, 26), Padding = new Padding(4, 2, 4, 0) };
             var table = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 4, RowCount = 1, BackColor = Color.FromArgb(8, 15, 26) };
             for (int i = 0; i < 4; i++) table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
-            table.Controls.Add(Readout("COM 1", out com1), 0, 0);
-            table.Controls.Add(Readout("COM 2", out com2), 1, 0);
-            table.Controls.Add(Readout("XPDR", out xpdr), 2, 0);
-            table.Controls.Add(Readout("CALLSIGN", out callsign), 3, 0);
+            table.Controls.Add(Readout("COM 1", out com1Caption, out com1), 0, 0);
+            table.Controls.Add(Readout("COM 2", out com2Caption, out com2), 1, 0);
+            table.Controls.Add(Readout("XPDR", out xpdrCaption, out xpdr), 2, 0);
+            table.Controls.Add(Readout("CALLSIGN", out callsignCaption, out callsign), 3, 0);
             panel.Controls.Add(table);
             return panel;
         }
 
-        private static Control Readout(string caption, out Label value)
+        private static Control Readout(string caption, out Label captionLabel, out Label value)
         {
             // Use explicit rows rather than overlapping Dock=Fill/Dock=Top labels.
             // This keeps both the caption and the live JoinFS value visible at all sizes.
@@ -161,7 +165,7 @@ namespace JoinFS.FlyLab.UI
             p.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
             p.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
 
-            var captionLabel = new Label
+            captionLabel = new Label
             {
                 Dock = DockStyle.Fill,
                 Text = caption,
@@ -235,10 +239,27 @@ namespace JoinFS.FlyLab.UI
             if (avionicsStrip != null) avionicsStrip.Visible = avionicsAvailable;
             if (avionicsAvailable)
             {
-                com1Value.Text = ownship.variableSet.GetFrequency(vuidCom1).ToString("F3");
-                com2Value.Text = ownship.variableSet.GetFrequency(vuidCom2).ToString("F3");
-                xpdrValue.Text = ownship.variableSet.GetInteger(vuidSquawk).ToString("D4");
-                callsignValue.Text = ownship.flightPlan.callsign ?? string.Empty;
+                string com1 = ownship.variableSet.GetFrequency(vuidCom1).ToString("F3");
+                string com2 = ownship.variableSet.GetFrequency(vuidCom2).ToString("F3");
+                string xpdr = ownship.variableSet.GetInteger(vuidSquawk).ToString("D4");
+                string callsign = ownship.flightPlan.callsign ?? string.Empty;
+
+                // Compact avionics presentation: value beside its label.
+                com1Caption.Text = "COM 1:  " + com1;
+                com2Caption.Text = "COM 2:  " + com2;
+                xpdrCaption.Text = "XPDR:  " + xpdr;
+                callsignCaption.Text = "CALLSIGN:  " + callsign;
+
+                // Keep the separate value labels empty; they are retained only so the
+                // readout structure can evolve without changing the JoinFS data binding.
+                com1Caption.Text = "COM 1";
+                com2Caption.Text = "COM 2";
+                xpdrCaption.Text = "XPDR";
+                callsignCaption.Text = "CALLSIGN";
+                com1Value.Text = string.Empty;
+                com2Value.Text = string.Empty;
+                xpdrValue.Text = string.Empty;
+                callsignValue.Text = string.Empty;
             }
             else
             {
