@@ -80,7 +80,7 @@ namespace JoinFS.FlyLab.UI
                 var size = g.MeasureString(headingText, headingFont);
                 var box = new RectangleF(
                     (ClientSize.Width - Math.Max(78F, size.Width + 20F)) / 2F,
-                    5F,
+                    44F,
                     Math.Max(78F, size.Width + 20F),
                     34F);
                 g.DrawRectangle(headingPen, box.X, box.Y, box.Width, box.Height);
