@@ -34,6 +34,8 @@ namespace JoinFS.FlyLab.UI
         private readonly uint vuidCom1;
         private readonly uint vuidCom2;
         private readonly uint vuidSquawk;
+        private bool avionicsWasAvailable;
+        private DateTime avionicsPowerOnAt;
 
         private FlyLabMainChrome(Form form, Main main)
         {
@@ -234,8 +236,20 @@ namespace JoinFS.FlyLab.UI
             var ownship = main.sim?.userAircraft;
             bool avionicsAvailable = ownship?.variableSet != null;
             if (avionicsStrip != null) avionicsStrip.Visible = avionicsAvailable;
+
+            // Presentation-only power-up sequence. JoinFS data is read immediately;
+            // only the first rendering is staggered to suggest independent avionics systems.
+            if (avionicsAvailable && !avionicsWasAvailable)
+                avionicsPowerOnAt = DateTime.UtcNow;
+
             if (avionicsAvailable)
             {
+                double powerOnMs = (DateTime.UtcNow - avionicsPowerOnAt).TotalMilliseconds;
+                SetReadoutVisible(callsignCaption, callsignValue, powerOnMs >= 0);
+                SetReadoutVisible(com1Caption, com1Value, powerOnMs >= 400);
+                SetReadoutVisible(com2Caption, com2Value, powerOnMs >= 600);
+                SetReadoutVisible(xpdrCaption, xpdrValue, powerOnMs >= 1200);
+
                 string com1 = ownship.variableSet.GetFrequency(vuidCom1).ToString("F3");
                 string com2 = ownship.variableSet.GetFrequency(vuidCom2).ToString("F3");
                 string xpdr = ownship.variableSet.GetInteger(vuidSquawk).ToString("D4");
@@ -250,17 +264,30 @@ namespace JoinFS.FlyLab.UI
             }
             else
             {
+                SetReadoutVisible(callsignCaption, callsignValue, false);
+                SetReadoutVisible(com1Caption, com1Value, false);
+                SetReadoutVisible(com2Caption, com2Value, false);
+                SetReadoutVisible(xpdrCaption, xpdrValue, false);
                 com1Value.Text = string.Empty;
                 com2Value.Text = string.Empty;
                 xpdrValue.Text = string.Empty;
                 callsignValue.Text = string.Empty;
             }
 
+            avionicsWasAvailable = avionicsAvailable;
+
             if (networkButton == null || trafficState == null) return;
+
             bool online = networkButton.BackColor == JoinFS.Properties.Settings.Default.ColourActiveBackground;
             trafficState.Text = online ? string.Empty : "NO SIGNAL";
             trafficState.ForeColor = FlyLabTheme.Error;
             trafficDisplay.Invalidate();
+        }
+
+        private static void SetReadoutVisible(Label caption, Label value, bool visible)
+        {
+            if (caption != null) caption.Visible = visible;
+            if (value != null) value.Visible = visible;
         }
 
         private static void MirrorState(Button source, Button target)
