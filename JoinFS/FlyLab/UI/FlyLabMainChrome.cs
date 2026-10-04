@@ -350,9 +350,9 @@ namespace JoinFS.FlyLab.UI
 
             avionicsWasAvailable = avionicsAvailable;
 
-            // L3.1 geometry test: capture one fixed geographic phantom 3 NM at 045°
-            // from the first valid ownship position. Moving the aircraft afterwards must
-            // change the phantom's relative distance/bearing without moving the phantom.
+            // L3.1 geometry test: capture one fixed geographic phantom exactly at the
+            // first valid ownship position. At startup target and ownship must overlap;
+            // moving the aircraft afterwards moves only the relative target indication.
             var ownPosition = ownship?.Position;
             if (ownPosition != null)
             {
@@ -364,24 +364,10 @@ namespace JoinFS.FlyLab.UI
 
             if (!phantomCaptured && ownPosition != null)
             {
-                const double distanceNm = 3.0;
-                const double bearingRad = Math.PI / 4.0;
-                const double earthRadiusNm = 3440.065;
                 // Sim.Pos.geo follows JoinFS' native convention: x=longitude and
                 // z=latitude, both already in radians (the Vector geodesic helpers use radians).
-                double lon1 = ownPosition.geo.x;
-                double lat1 = ownPosition.geo.z;
-                double angularDistance = distanceNm / earthRadiusNm;
-
-                double lat2 = Math.Asin(
-                    Math.Sin(lat1) * Math.Cos(angularDistance) +
-                    Math.Cos(lat1) * Math.Sin(angularDistance) * Math.Cos(bearingRad));
-                double lon2 = lon1 + Math.Atan2(
-                    Math.Sin(bearingRad) * Math.Sin(angularDistance) * Math.Cos(lat1),
-                    Math.Cos(angularDistance) - Math.Sin(lat1) * Math.Sin(lat2));
-
-                phantomLongitude = lon2;
-                phantomLatitude = lat2;
+                phantomLongitude = ownPosition.geo.x;
+                phantomLatitude = ownPosition.geo.z;
                 phantomAltitudeFeet = ownPosition.geo.y * Sim.FEET_PER_METRE;
                 phantomCaptured = true;
             }
