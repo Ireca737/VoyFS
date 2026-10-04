@@ -72,6 +72,9 @@ namespace JoinFS.FlyLab.UI
             instrument.Controls.Add(trafficDisplay);
             instrument.Controls.Add(connection);
             instrument.Controls.Add(avionicsStrip);
+            // WinForms z-order matters for Dock=Fill: keep the avionics strip above the
+            // traffic surface so its value row cannot be painted underneath it.
+            avionicsStrip.BringToFront();
 
             networkButton = Find<Button>(form, "Button_Network");
             simulatorButton = Find<Button>(form, "Button_Simulator");
