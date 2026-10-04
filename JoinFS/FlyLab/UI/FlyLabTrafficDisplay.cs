@@ -18,6 +18,7 @@ namespace JoinFS.FlyLab.UI
         private double phantomBearingDeg;
         private string phantomCallsign = string.Empty;
         private int phantomRelativeAltitudeHundreds;
+        private double phantomVerticalSpeedFpm;
         private int ownshipHeadingDeg;
         private string ownshipCallsign = string.Empty;
 
@@ -32,13 +33,14 @@ namespace JoinFS.FlyLab.UI
             }
         }
 
-        internal void SetPhantom(bool available, double distanceNm, double bearingDeg, string callsign, int relativeAltitudeHundreds)
+        internal void SetPhantom(bool available, double distanceNm, double bearingDeg, string callsign, int relativeAltitudeHundreds, double verticalSpeedFpm)
         {
             phantomAvailable = available;
             phantomDistanceNm = distanceNm;
             phantomBearingDeg = bearingDeg;
             phantomCallsign = callsign ?? string.Empty;
             phantomRelativeAltitudeHundreds = relativeAltitudeHundreds;
+            phantomVerticalSpeedFpm = verticalSpeedFpm;
             Invalidate();
         }
 
@@ -187,7 +189,12 @@ namespace JoinFS.FlyLab.UI
                             ? phantomRelativeAltitudeHundreds.ToString("D2")
                             : "00";
                     g.DrawString(phantomCallsign, targetFont, targetBrush, tx + 8, ty - 12);
-                    g.DrawString(altitude, targetFont, targetBrush, tx + 8, ty + 1);
+                    string trend = phantomVerticalSpeedFpm >= 500.0
+                        ? " ↑"
+                        : phantomVerticalSpeedFpm <= -500.0
+                            ? " ↓"
+                            : string.Empty;
+                    g.DrawString(altitude + trend, targetFont, targetBrush, tx + 8, ty + 1);
                 }
             }
         }
