@@ -73,12 +73,12 @@ namespace JoinFS.FlyLab.UI
         private void Animate(object sender, EventArgs e)
         {
             double ms = (DateTime.UtcNow - shownAt).TotalMilliseconds;
-            if (ms < 250)
-                Opacity = Math.Min(1.0, ms / 250.0);
-            else if (ms < 1500)
+            if (ms < 500)
+                Opacity = Math.Min(1.0, ms / 500.0);
+            else if (ms < 3000)
                 Opacity = 1.0;
-            else if (ms < 1800)
-                Opacity = Math.Max(0.0, 1.0 - ((ms - 1500.0) / 300.0));
+            else if (ms < 3600)
+                Opacity = Math.Max(0.0, 1.0 - ((ms - 3000.0) / 600.0));
             else
             {
                 timer.Stop();
