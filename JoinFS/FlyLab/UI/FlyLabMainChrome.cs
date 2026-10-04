@@ -13,8 +13,7 @@ namespace JoinFS.FlyLab.UI
     internal sealed class FlyLabMainChrome
     {
         private readonly Form form;
-        private readonly Panel trafficDisplay;
-        private readonly Label trafficState;
+        private readonly FlyLabTrafficDisplay trafficDisplay;
         private readonly Button networkButton;
         private readonly Button simulatorButton;
         private readonly Button globalButton;
@@ -72,8 +71,7 @@ namespace JoinFS.FlyLab.UI
 
             avionicsStrip = BuildAvionicsStrip(out com1Caption, out com1Value, out com2Caption, out com2Value, out xpdrCaption, out xpdrValue, out callsignCaption, out callsignValue);
             var connection = BuildConnectionDeck(form, out simulatorIndicator, out networkIndicator, out globalIndicator);
-            trafficDisplay = BuildTrafficDisplay(out trafficState);
-            trafficDisplay.Paint += (_, e) => PaintRadar(e.Graphics, trafficDisplay.ClientRectangle);
+            trafficDisplay = new FlyLabTrafficDisplay();
 
             instrument.Controls.Add(trafficDisplay);
             instrument.Controls.Add(connection);
@@ -187,16 +185,6 @@ namespace JoinFS.FlyLab.UI
             return p;
         }
 
-        private static Panel BuildTrafficDisplay(out Label state)
-        {
-            var panel = new Panel { Dock = DockStyle.Fill, BackColor = Color.FromArgb(8, 15, 26), Margin = new Padding(0, 8, 0, 8) };
-            panel.Controls.Add(new Label { Dock = DockStyle.Top, Height = 32, Text = "TRAFFIC", ForeColor = FlyLabTheme.TextMuted, TextAlign = ContentAlignment.MiddleCenter, Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold) });
-            state = new Label { Dock = DockStyle.Fill, Text = "NO SIGNAL", ForeColor = FlyLabTheme.Error, TextAlign = ContentAlignment.MiddleCenter, Font = new Font("Segoe UI Semibold", 24F, FontStyle.Bold) };
-            panel.Controls.Add(state);
-            state.BringToFront();
-            return panel;
-        }
-
         private static Panel BuildConnectionDeck(Form form, out Button simulatorIndicator, out Button networkIndicator, out Button globalIndicator)
         {
             var panel = new Panel { Dock = DockStyle.Bottom, Height = 125, BackColor = Color.FromArgb(8, 15, 26), Padding = new Padding(10, 4, 10, 6) };
@@ -276,12 +264,10 @@ namespace JoinFS.FlyLab.UI
 
             avionicsWasAvailable = avionicsAvailable;
 
-            if (networkButton == null || trafficState == null) return;
+            if (networkButton == null || trafficDisplay == null) return;
 
             bool online = networkButton.BackColor == JoinFS.Properties.Settings.Default.ColourActiveBackground;
-            trafficState.Text = online ? string.Empty : "NO SIGNAL";
-            trafficState.ForeColor = FlyLabTheme.Error;
-            trafficDisplay.Invalidate();
+            trafficDisplay.NetworkAvailable = online;
         }
 
         private static void SetReadoutVisible(Label caption, Label value, bool visible)
@@ -298,46 +284,6 @@ namespace JoinFS.FlyLab.UI
             target.Enabled = source.Enabled;
         }
 
-
-        private void PaintRadar(Graphics g, Rectangle bounds)
-        {
-            if (networkButton == null ||
-                networkButton.BackColor != JoinFS.Properties.Settings.Default.ColourActiveBackground)
-                return;
-
-            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-            int cx = bounds.Width / 2;
-            int cy = bounds.Height / 2;
-            int radius = Math.Max(30, Math.Min(bounds.Width, bounds.Height) / 2 - 30);
-
-            using (var pen = new Pen(Color.FromArgb(80, FlyLabTheme.Accent), 1F))
-            {
-                for (int i = 1; i <= 4; i++)
-                {
-                    int r = radius * i / 4;
-                    g.DrawEllipse(pen, cx - r, cy - r, r * 2, r * 2);
-                }
-                g.DrawLine(pen, cx - radius, cy, cx + radius, cy);
-                g.DrawLine(pen, cx, cy - radius, cx, cy + radius);
-            }
-
-            using (var pen = new Pen(FlyLabTheme.Success, 2F))
-            {
-                Point[] ownship =
-                {
-                    new Point(cx, cy - 12),
-                    new Point(cx - 9, cy + 10),
-                    new Point(cx, cy + 5),
-                    new Point(cx + 9, cy + 10),
-                    new Point(cx, cy - 12)
-                };
-                g.DrawLines(pen, ownship);
-            }
-
-            using (var font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold))
-            using (var brush = new SolidBrush(FlyLabTheme.TextMuted))
-                g.DrawString("N", font, brush, cx - 5, cy - radius + 6);
-        }
 
         private static void AddSection(FlowLayoutPanel flow, string text)
         {
