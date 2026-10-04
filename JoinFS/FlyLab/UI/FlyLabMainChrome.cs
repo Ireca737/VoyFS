@@ -22,10 +22,22 @@ namespace JoinFS.FlyLab.UI
         private readonly Button simulatorIndicator;
         private readonly Button globalIndicator;
         private readonly Panel avionicsStrip;
+        private readonly Label com1Value;
+        private readonly Label com2Value;
+        private readonly Label xpdrValue;
+        private readonly Label callsignValue;
+        private readonly Main main;
+        private readonly uint vuidCom1;
+        private readonly uint vuidCom2;
+        private readonly uint vuidSquawk;
 
-        private FlyLabMainChrome(Form form)
+        private FlyLabMainChrome(Form form, Main main)
         {
             this.form = form;
+            this.main = main;
+            vuidCom1 = VariableMgr.CreateVuid("com active frequency:1");
+            vuidCom2 = VariableMgr.CreateVuid("com active frequency:2");
+            vuidSquawk = VariableMgr.CreateVuid("transponder code:1");
             form.SuspendLayout();
 
             form.BackColor = FlyLabTheme.Background;
@@ -52,7 +64,7 @@ namespace JoinFS.FlyLab.UI
             host.Controls.Add(sidebar);
             host.Controls.Add(header);
 
-            avionicsStrip = BuildAvionicsStrip();
+            avionicsStrip = BuildAvionicsStrip(out com1Value, out com2Value, out xpdrValue, out callsignValue);
             var connection = BuildConnectionDeck(form, out simulatorIndicator, out networkIndicator, out globalIndicator);
             trafficDisplay = BuildTrafficDisplay(out trafficState);
             trafficDisplay.Paint += (_, e) => PaintRadar(e.Graphics, trafficDisplay.ClientRectangle);
@@ -72,9 +84,9 @@ namespace JoinFS.FlyLab.UI
             form.ResumeLayout(true);
         }
 
-        public static FlyLabMainChrome Attach(Form form)
+        public static FlyLabMainChrome Attach(Form form, Main main)
         {
-            return form == null ? null : new FlyLabMainChrome(form);
+            return form == null || main == null ? null : new FlyLabMainChrome(form, main);
         }
 
         private static Panel BuildHeader()
@@ -117,24 +129,25 @@ namespace JoinFS.FlyLab.UI
             return panel;
         }
 
-        private static Panel BuildAvionicsStrip()
+        private static Panel BuildAvionicsStrip(out Label com1, out Label com2, out Label xpdr, out Label callsign)
         {
             var panel = new Panel { Dock = DockStyle.Top, Height = 58, BackColor = Color.FromArgb(8, 15, 26), Padding = new Padding(4, 2, 4, 0) };
             var table = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 4, RowCount = 1, BackColor = Color.FromArgb(8, 15, 26) };
             for (int i = 0; i < 4; i++) table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
-            table.Controls.Add(Readout("COM 1", "---.---"), 0, 0);
-            table.Controls.Add(Readout("COM 2", "---.---"), 1, 0);
-            table.Controls.Add(Readout("XPDR", "----"), 2, 0);
-            table.Controls.Add(Readout("CALLSIGN", "-----"), 3, 0);
+            table.Controls.Add(Readout("COM 1", out com1), 0, 0);
+            table.Controls.Add(Readout("COM 2", out com2), 1, 0);
+            table.Controls.Add(Readout("XPDR", out xpdr), 2, 0);
+            table.Controls.Add(Readout("CALLSIGN", out callsign), 3, 0);
             panel.Controls.Add(table);
             return panel;
         }
 
-        private static Control Readout(string caption, string value)
+        private static Control Readout(string caption, out Label value)
         {
             var p = new Panel { Dock = DockStyle.Fill, Margin = new Padding(4), BackColor = Color.FromArgb(8, 15, 26) };
-            p.Controls.Add(new Label { Dock = DockStyle.Fill, Text = value, ForeColor = FlyLabTheme.Text, TextAlign = ContentAlignment.MiddleCenter, Font = new Font("Consolas", 15F, FontStyle.Bold) });
-            p.Controls.Add(new Label { Dock = DockStyle.Top, Height = 20, Text = caption, ForeColor = FlyLabTheme.Accent, TextAlign = ContentAlignment.MiddleCenter, Font = new Font("Segoe UI Semibold", 8F, FontStyle.Bold) });
+            value = new Label { Dock = DockStyle.Fill, Text = string.Empty, ForeColor = FlyLabTheme.Text, TextAlign = ContentAlignment.MiddleCenter, Font = new Font("Consolas", 15F, FontStyle.Bold), BackColor = Color.Transparent };
+            p.Controls.Add(value);
+            p.Controls.Add(new Label { Dock = DockStyle.Top, Height = 20, Text = caption, ForeColor = FlyLabTheme.Accent, TextAlign = ContentAlignment.MiddleCenter, Font = new Font("Segoe UI Semibold", 8F, FontStyle.Bold), BackColor = Color.Transparent });
             return p;
         }
 
@@ -182,13 +195,24 @@ namespace JoinFS.FlyLab.UI
             MirrorState(networkButton, networkIndicator);
             MirrorState(globalButton, globalIndicator);
 
-            // Avionics data belong to the simulator domain: when the simulator is not
-            // connected the strip is physically absent, rather than showing placeholders.
-            if (avionicsStrip != null)
+            // JoinFS is the sole source of truth for ownship avionics. FlyLab only presents
+            // the values while the local user aircraft and its variable set are available.
+            var ownship = main.sim?.userAircraft;
+            bool avionicsAvailable = ownship?.variableSet != null;
+            if (avionicsStrip != null) avionicsStrip.Visible = avionicsAvailable;
+            if (avionicsAvailable)
             {
-                bool simulatorOnline = simulatorButton != null &&
-                    simulatorButton.BackColor == JoinFS.Properties.Settings.Default.ColourActiveBackground;
-                avionicsStrip.Visible = simulatorOnline;
+                com1Value.Text = ownship.variableSet.GetFrequency(vuidCom1).ToString("F3");
+                com2Value.Text = ownship.variableSet.GetFrequency(vuidCom2).ToString("F3");
+                xpdrValue.Text = ownship.variableSet.GetInteger(vuidSquawk).ToString("D4");
+                callsignValue.Text = ownship.flightPlan.callsign ?? string.Empty;
+            }
+            else
+            {
+                com1Value.Text = string.Empty;
+                com2Value.Text = string.Empty;
+                xpdrValue.Text = string.Empty;
+                callsignValue.Text = string.Empty;
             }
 
             if (networkButton == null || trafficState == null) return;
