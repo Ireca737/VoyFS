@@ -35,10 +35,6 @@ namespace JoinFS.FlyLab.UI
         private readonly uint vuidSquawk;
         private bool avionicsWasAvailable;
         private DateTime avionicsPowerOnAt;
-        private bool phantomCaptured;
-        private double phantomLongitude;
-        private double phantomLatitude;
-        private double phantomAltitudeFeet;
 
         private FlyLabMainChrome(Form form, Main main)
         {
@@ -360,37 +356,6 @@ namespace JoinFS.FlyLab.UI
                 // ObjectPositionUpdate pass angles.y through unchanged, so no FlyLab offset is required.
                 int headingDeg = (int)Math.Round(ownPosition.angles.y * 180.0 / Math.PI);
                 trafficDisplay.SetOwnshipHeading(headingDeg);
-            }
-
-            if (!phantomCaptured && ownPosition != null)
-            {
-                // Sim.Pos.geo follows JoinFS' native convention: x=longitude and
-                // z=latitude, both already in radians (the Vector geodesic helpers use radians).
-                phantomLongitude = ownPosition.geo.x;
-                phantomLatitude = ownPosition.geo.z;
-                phantomAltitudeFeet = ownPosition.geo.y * Sim.FEET_PER_METRE;
-                phantomCaptured = true;
-            }
-
-            if (phantomCaptured && ownPosition != null)
-            {
-                double distanceMetres = Vector.GeodesicDistance(
-                    ownPosition.geo.x, ownPosition.geo.z, phantomLongitude, phantomLatitude);
-                double distanceNm = distanceMetres * 0.00053995680346;
-                double bearingRad = Vector.GeodesicBearing(
-                    ownPosition.geo.x, ownPosition.geo.z, phantomLongitude, phantomLatitude);
-                double bearingDeg = bearingRad * 180.0 / Math.PI;
-                double ownAltitudeFeet = ownPosition.geo.y * Sim.FEET_PER_METRE;
-                int relativeAltitudeHundreds = (int)Math.Round(
-                    (phantomAltitudeFeet - ownAltitudeFeet) / 100.0,
-                    MidpointRounding.AwayFromZero);
-                string targetCallsign = ownship.flightPlan.callsign ?? string.Empty;
-                // Diagnostic only: exercise the TCAS climb trend before real network traffic is wired in.
-                trafficDisplay.SetPhantom(true, distanceNm, bearingDeg, targetCallsign, relativeAltitudeHundreds, 600.0);
-            }
-            else
-            {
-                trafficDisplay.SetPhantom(false, 0.0, 0.0, string.Empty, 0, 0.0);
             }
 
             if (networkButton == null || trafficDisplay == null) return;
