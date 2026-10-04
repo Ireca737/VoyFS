@@ -272,6 +272,12 @@ namespace JoinFS.FlyLab.UI
             // from the first valid ownship position. Moving the aircraft afterwards must
             // change the phantom's relative distance/bearing without moving the phantom.
             var ownPosition = ownship?.Position;
+            if (ownPosition != null)
+            {
+                int headingDeg = (int)Math.Round(ownPosition.angles.y * 180.0 / Math.PI);
+                trafficDisplay.SetOwnshipHeading(headingDeg);
+            }
+
             if (!phantomCaptured && ownPosition != null)
             {
                 const double distanceNm = 3.0;
