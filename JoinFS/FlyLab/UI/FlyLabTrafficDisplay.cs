@@ -19,6 +19,7 @@ namespace JoinFS.FlyLab.UI
         private string phantomCallsign = string.Empty;
         private int phantomRelativeAltitudeHundreds;
         private int ownshipHeadingDeg;
+        private string ownshipCallsign = string.Empty;
 
         internal bool NetworkAvailable
         {
@@ -47,6 +48,12 @@ namespace JoinFS.FlyLab.UI
             Invalidate();
         }
 
+        internal void SetOwnshipCallsign(string callsign)
+        {
+            ownshipCallsign = callsign ?? string.Empty;
+            Invalidate();
+        }
+
         internal FlyLabTrafficDisplay()
         {
             Dock = DockStyle.Fill;
@@ -64,12 +71,22 @@ namespace JoinFS.FlyLab.UI
             var g = e.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
-            using (var titleFont = new Font("Segoe UI Semibold", 10F, FontStyle.Bold))
-            using (var titleBrush = new SolidBrush(FlyLabTheme.TextMuted))
+            // Heading is the primary top reference: large white digits in a green frame.
+            string headingText = ownshipHeadingDeg.ToString("D3") + "°";
+            using (var headingFont = new Font("Segoe UI Semibold", 14F, FontStyle.Bold))
+            using (var headingBrush = new SolidBrush(Color.White))
+            using (var headingPen = new Pen(FlyLabTheme.Success, 3F))
             {
-                const string title = "TRAFFIC";
-                var size = g.MeasureString(title, titleFont);
-                g.DrawString(title, titleFont, titleBrush, (ClientSize.Width - size.Width) / 2F, 8F);
+                var size = g.MeasureString(headingText, headingFont);
+                var box = new RectangleF(
+                    (ClientSize.Width - Math.Max(78F, size.Width + 20F)) / 2F,
+                    5F,
+                    Math.Max(78F, size.Width + 20F),
+                    34F);
+                g.DrawRectangle(headingPen, box.X, box.Y, box.Width, box.Height);
+                g.DrawString(headingText, headingFont, headingBrush,
+                    box.X + (box.Width - size.Width) / 2F,
+                    box.Y + (box.Height - size.Height) / 2F - 1F);
             }
 
             if (!networkAvailable)
@@ -122,7 +139,6 @@ namespace JoinFS.FlyLab.UI
             using (var font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold))
             using (var brush = new SolidBrush(FlyLabTheme.TextMuted))
             {
-                DrawCentered(g, heading.ToString("D3") + "°", font, brush, cx, cy - radius - 20);
                 DrawCentered(g, reciprocal.ToString("D3") + "°", font, brush, cx, cy + radius + 6);
 
                 string leftText = leftBeam.ToString("D3") + "°";
@@ -131,6 +147,17 @@ namespace JoinFS.FlyLab.UI
                 var rightSize = g.MeasureString(rightText, font);
                 g.DrawString(leftText, font, brush, cx - radius - leftSize.Width - 8, cy - leftSize.Height / 2F);
                 g.DrawString(rightText, font, brush, cx + radius + 8, cy - rightSize.Height / 2F);
+            }
+
+            if (!string.IsNullOrWhiteSpace(ownshipCallsign))
+            {
+                using var callsignFont = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
+                using var callsignBrush = new SolidBrush(FlyLabTheme.Accent);
+                string text = "CALLSIGN:  " + ownshipCallsign;
+                var size = g.MeasureString(text, callsignFont);
+                g.DrawString(text, callsignFont, callsignBrush,
+                    ClientSize.Width - size.Width - 14F,
+                    ClientSize.Height - size.Height - 8F);
             }
 
             // L3.1 diagnostic phantom: a fixed geographic point captured relative to the
