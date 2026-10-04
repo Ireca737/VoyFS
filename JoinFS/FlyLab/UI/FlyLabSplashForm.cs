@@ -12,7 +12,7 @@ namespace JoinFS.FlyLab.UI
     internal sealed class FlyLabSplashForm : Form
     {
         private readonly DateTime shownAt = DateTime.UtcNow;
-        private readonly Timer timer;
+        private readonly System.Windows.Forms.Timer timer;
 
         private FlyLabSplashForm()
         {
@@ -65,7 +65,7 @@ namespace JoinFS.FlyLab.UI
             Controls.Add(subtitle);
             Controls.Add(credits);
 
-            timer = new Timer { Interval = 25 };
+            timer = new System.Windows.Forms.Timer { Interval = 25 };
             timer.Tick += Animate;
             Shown += (_, __) => timer.Start();
         }
