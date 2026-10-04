@@ -143,25 +143,30 @@ namespace JoinFS.FlyLab.UI
         private static Panel BuildAvionicsStrip(out Label com1Caption, out Label com1, out Label com2Caption, out Label com2, out Label xpdrCaption, out Label xpdr, out Label callsignCaption, out Label callsign)
         {
             var panel = new Panel { Dock = DockStyle.Top, Height = 58, BackColor = Color.FromArgb(8, 15, 26), Padding = new Padding(4, 2, 4, 0) };
-            var table = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, RowCount = 2, BackColor = Color.FromArgb(8, 15, 26) };
-            table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34F));
-            table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 42F));
-            table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 24F));
-            table.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            table.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
 
-            table.Controls.Add(ReadoutCompact("COM 1:", true, out com1Caption, out com1), 0, 0);
-            table.Controls.Add(ReadoutCompact("COM 2:", true, out com2Caption, out com2), 0, 1);
-            table.Controls.Add(ReadoutCompact("XPDR:", true, out xpdrCaption, out xpdr), 2, 0);
-            table.SetRowSpan(table.GetControlFromPosition(2, 0), 2);
+            var left = new TableLayoutPanel
+            {
+                Dock = DockStyle.Left, Width = 250, ColumnCount = 1, RowCount = 2,
+                BackColor = Color.FromArgb(8, 15, 26), Margin = new Padding(0)
+            };
+            left.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            left.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            left.Controls.Add(ReadoutCompact("COM 1:", true, out com1Caption, out com1), 0, 0);
+            left.Controls.Add(ReadoutCompact("COM 2:", true, out com2Caption, out com2), 0, 1);
 
-            // Callsign is presented inside the traffic instrument; keep these labels as
-            // data holders so the established avionics startup/data binding remains intact.
-            callsignCaption = new Label { Visible = false };
-            callsign = new Label { Visible = false };
-            panel.Controls.Add(callsignCaption);
-            panel.Controls.Add(callsign);
-            panel.Controls.Add(table);
+            var right = new Panel { Dock = DockStyle.Right, Width = 170, BackColor = Color.FromArgb(8, 15, 26) };
+            var xpdrReadout = ReadoutCompact("XPDR:", true, out xpdrCaption, out xpdr);
+            xpdrReadout.Dock = DockStyle.Top;
+            xpdrReadout.Height = 30;
+            right.Controls.Add(xpdrReadout);
+
+            // Callsign is now painted by FlyLabTrafficDisplay. These hidden labels remain
+            // only as data holders for the established startup/binding sequence.
+            callsignCaption = new Label { Visible = false, Size = Size.Empty };
+            callsign = new Label { Visible = false, Size = Size.Empty };
+
+            panel.Controls.Add(right);
+            panel.Controls.Add(left);
             return panel;
         }
 
