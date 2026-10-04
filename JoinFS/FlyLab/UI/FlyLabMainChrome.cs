@@ -36,8 +36,8 @@ namespace JoinFS.FlyLab.UI
         private bool avionicsWasAvailable;
         private DateTime avionicsPowerOnAt;
         private bool phantomCaptured;
-        private double phantomLatitude;
         private double phantomLongitude;
+        private double phantomLatitude;
 
         private FlyLabMainChrome(Form form, Main main)
         {
@@ -276,8 +276,10 @@ namespace JoinFS.FlyLab.UI
                 const double distanceNm = 3.0;
                 const double bearingRad = Math.PI / 4.0;
                 const double earthRadiusNm = 3440.065;
-                double lat1 = ownPosition.geo.x * Math.PI / 180.0;
-                double lon1 = ownPosition.geo.z * Math.PI / 180.0;
+                // Sim.Pos.geo follows JoinFS' native convention: x=longitude and
+                // z=latitude, both already in radians (the Vector geodesic helpers use radians).
+                double lon1 = ownPosition.geo.x;
+                double lat1 = ownPosition.geo.z;
                 double angularDistance = distanceNm / earthRadiusNm;
 
                 double lat2 = Math.Asin(
@@ -287,19 +289,20 @@ namespace JoinFS.FlyLab.UI
                     Math.Sin(bearingRad) * Math.Sin(angularDistance) * Math.Cos(lat1),
                     Math.Cos(angularDistance) - Math.Sin(lat1) * Math.Sin(lat2));
 
-                phantomLatitude = lat2 * 180.0 / Math.PI;
-                phantomLongitude = lon2 * 180.0 / Math.PI;
+                phantomLongitude = lon2;
+                phantomLatitude = lat2;
                 phantomCaptured = true;
             }
 
             if (phantomCaptured && ownPosition != null)
             {
                 double distanceMetres = Vector.GeodesicDistance(
-                    phantomLatitude, phantomLongitude, ownPosition.geo.x, ownPosition.geo.z);
+                    ownPosition.geo.x, ownPosition.geo.z, phantomLongitude, phantomLatitude);
                 double distanceNm = distanceMetres * 0.00053995680346;
-                double bearing = Vector.GeodesicBearing(
-                    ownPosition.geo.x, ownPosition.geo.z, phantomLatitude, phantomLongitude);
-                trafficDisplay.SetPhantom(true, distanceNm, bearing);
+                double bearingRad = Vector.GeodesicBearing(
+                    ownPosition.geo.x, ownPosition.geo.z, phantomLongitude, phantomLatitude);
+                double bearingDeg = bearingRad * 180.0 / Math.PI;
+                trafficDisplay.SetPhantom(true, distanceNm, bearingDeg);
             }
             else
             {
