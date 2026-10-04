@@ -13,6 +13,9 @@ namespace JoinFS.FlyLab.UI
     internal sealed class FlyLabTrafficDisplay : Control
     {
         private bool networkAvailable;
+        private bool phantomAvailable;
+        private double phantomDistanceNm;
+        private double phantomBearingDeg;
 
         internal bool NetworkAvailable
         {
@@ -23,6 +26,14 @@ namespace JoinFS.FlyLab.UI
                 networkAvailable = value;
                 Invalidate();
             }
+        }
+
+        internal void SetPhantom(bool available, double distanceNm, double bearingDeg)
+        {
+            phantomAvailable = available;
+            phantomDistanceNm = distanceNm;
+            phantomBearingDeg = bearingDeg;
+            Invalidate();
         }
 
         internal FlyLabTrafficDisplay()
@@ -93,6 +104,25 @@ namespace JoinFS.FlyLab.UI
             using (var font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold))
             using (var brush = new SolidBrush(FlyLabTheme.TextMuted))
                 g.DrawString("N", font, brush, cx - 5, cy - radius + 6);
+
+            // L3.1 diagnostic phantom: a fixed geographic point captured relative to the
+            // ownship at startup. Full scale is temporarily 10 NM for this geometry test.
+            if (phantomAvailable)
+            {
+                const double rangeNm = 10.0;
+                double clampedDistance = Math.Min(rangeNm, Math.Max(0.0, phantomDistanceNm));
+                double angle = phantomBearingDeg * Math.PI / 180.0;
+                float targetRadius = (float)(radius * clampedDistance / rangeNm);
+                float tx = cx + (float)(Math.Sin(angle) * targetRadius);
+                float ty = cy - (float)(Math.Cos(angle) * targetRadius);
+
+                using (var targetPen = new Pen(FlyLabTheme.Warning, 2F))
+                    g.DrawRectangle(targetPen, tx - 5, ty - 5, 10, 10);
+
+                using (var targetFont = new Font("Segoe UI Semibold", 8F, FontStyle.Bold))
+                using (var targetBrush = new SolidBrush(FlyLabTheme.Warning))
+                    g.DrawString("TEST01", targetFont, targetBrush, tx + 8, ty - 8);
+            }
         }
     }
 }
