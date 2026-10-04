@@ -143,14 +143,55 @@ namespace JoinFS.FlyLab.UI
         private static Panel BuildAvionicsStrip(out Label com1Caption, out Label com1, out Label com2Caption, out Label com2, out Label xpdrCaption, out Label xpdr, out Label callsignCaption, out Label callsign)
         {
             var panel = new Panel { Dock = DockStyle.Top, Height = 58, BackColor = Color.FromArgb(8, 15, 26), Padding = new Padding(4, 2, 4, 0) };
-            var table = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 4, RowCount = 1, BackColor = Color.FromArgb(8, 15, 26) };
-            for (int i = 0; i < 4; i++) table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
-            table.Controls.Add(Readout("COM 1:", true, out com1Caption, out com1), 0, 0);
-            table.Controls.Add(Readout("COM 2:", true, out com2Caption, out com2), 1, 0);
-            table.Controls.Add(Readout("XPDR:", true, out xpdrCaption, out xpdr), 2, 0);
-            table.Controls.Add(Readout("CALLSIGN:", false, out callsignCaption, out callsign), 3, 0);
+            var table = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, RowCount = 2, BackColor = Color.FromArgb(8, 15, 26) };
+            table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34F));
+            table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 42F));
+            table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 24F));
+            table.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            table.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+
+            table.Controls.Add(ReadoutCompact("COM 1:", true, out com1Caption, out com1), 0, 0);
+            table.Controls.Add(ReadoutCompact("COM 2:", true, out com2Caption, out com2), 0, 1);
+            table.Controls.Add(ReadoutCompact("XPDR:", true, out xpdrCaption, out xpdr), 2, 0);
+            table.SetRowSpan(table.GetControlFromPosition(2, 0), 2);
+
+            // Callsign is presented inside the traffic instrument; keep these labels as
+            // data holders so the established avionics startup/data binding remains intact.
+            callsignCaption = new Label { Visible = false };
+            callsign = new Label { Visible = false };
+            panel.Controls.Add(callsignCaption);
+            panel.Controls.Add(callsign);
             panel.Controls.Add(table);
             return panel;
+        }
+
+        private static Control ReadoutCompact(string caption, bool dynamicValue, out Label captionLabel, out Label value)
+        {
+            var p = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                Margin = new Padding(4, 0, 4, 0),
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = false,
+                BackColor = Color.FromArgb(8, 15, 26),
+                Padding = new Padding(0, 1, 0, 0)
+            };
+            captionLabel = new Label
+            {
+                AutoSize = true, Margin = new Padding(0, 0, 4, 0), Text = caption,
+                ForeColor = FlyLabTheme.Accent, Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold),
+                BackColor = Color.Transparent
+            };
+            value = new Label
+            {
+                AutoSize = true, Margin = new Padding(0), Text = string.Empty,
+                ForeColor = dynamicValue ? FlyLabTheme.Success : FlyLabTheme.Accent,
+                Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold),
+                BackColor = Color.Transparent
+            };
+            p.Controls.Add(captionLabel);
+            p.Controls.Add(value);
+            return p;
         }
 
         private static Control Readout(string caption, bool dynamicValue, out Label captionLabel, out Label value)
@@ -253,6 +294,7 @@ namespace JoinFS.FlyLab.UI
                 com2Value.Text = com2;
                 xpdrValue.Text = xpdr;
                 callsignValue.Text = callsign;
+                trafficDisplay.SetOwnshipCallsign(callsign);
             }
             else
             {
@@ -264,6 +306,7 @@ namespace JoinFS.FlyLab.UI
                 com2Value.Text = string.Empty;
                 xpdrValue.Text = string.Empty;
                 callsignValue.Text = string.Empty;
+                trafficDisplay.SetOwnshipCallsign(string.Empty);
             }
 
             avionicsWasAvailable = avionicsAvailable;
