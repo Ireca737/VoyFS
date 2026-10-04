@@ -21,6 +21,7 @@ namespace JoinFS.FlyLab.UI
         private readonly Button networkIndicator;
         private readonly Button simulatorIndicator;
         private readonly Button globalIndicator;
+        private readonly Panel avionicsStrip;
 
         private FlyLabMainChrome(Form form)
         {
@@ -51,14 +52,14 @@ namespace JoinFS.FlyLab.UI
             host.Controls.Add(sidebar);
             host.Controls.Add(header);
 
-            var avionics = BuildAvionicsStrip();
+            avionicsStrip = BuildAvionicsStrip();
             var connection = BuildConnectionDeck(form, out simulatorIndicator, out networkIndicator, out globalIndicator);
             trafficDisplay = BuildTrafficDisplay(out trafficState);
             trafficDisplay.Paint += (_, e) => PaintRadar(e.Graphics, trafficDisplay.ClientRectangle);
 
             instrument.Controls.Add(trafficDisplay);
             instrument.Controls.Add(connection);
-            instrument.Controls.Add(avionics);
+            instrument.Controls.Add(avionicsStrip);
 
             networkButton = Find<Button>(form, "Button_Network");
             simulatorButton = Find<Button>(form, "Button_Simulator");
@@ -180,6 +181,15 @@ namespace JoinFS.FlyLab.UI
             MirrorState(simulatorButton, simulatorIndicator);
             MirrorState(networkButton, networkIndicator);
             MirrorState(globalButton, globalIndicator);
+
+            // Avionics data belong to the simulator domain: when the simulator is not
+            // connected the strip is physically absent, rather than showing placeholders.
+            if (avionicsStrip != null)
+            {
+                bool simulatorOnline = simulatorButton != null &&
+                    simulatorButton.BackColor == JoinFS.Properties.Settings.Default.ColourActiveBackground;
+                avionicsStrip.Visible = simulatorOnline;
+            }
 
             if (networkButton == null || trafficState == null) return;
             bool online = networkButton.BackColor == JoinFS.Properties.Settings.Default.ColourActiveBackground;
