@@ -141,50 +141,47 @@ namespace JoinFS.FlyLab.UI
             var panel = new Panel { Dock = DockStyle.Top, Height = 58, BackColor = Color.FromArgb(8, 15, 26), Padding = new Padding(4, 2, 4, 0) };
             var table = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 4, RowCount = 1, BackColor = Color.FromArgb(8, 15, 26) };
             for (int i = 0; i < 4; i++) table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
-            table.Controls.Add(Readout("COM 1", out com1Caption, out com1), 0, 0);
-            table.Controls.Add(Readout("COM 2", out com2Caption, out com2), 1, 0);
-            table.Controls.Add(Readout("XPDR", out xpdrCaption, out xpdr), 2, 0);
-            table.Controls.Add(Readout("CALLSIGN", out callsignCaption, out callsign), 3, 0);
+            table.Controls.Add(Readout("COM 1:", true, out com1Caption, out com1), 0, 0);
+            table.Controls.Add(Readout("COM 2:", true, out com2Caption, out com2), 1, 0);
+            table.Controls.Add(Readout("XPDR:", true, out xpdrCaption, out xpdr), 2, 0);
+            table.Controls.Add(Readout("CALLSIGN:", false, out callsignCaption, out callsign), 3, 0);
             panel.Controls.Add(table);
             return panel;
         }
 
-        private static Control Readout(string caption, out Label captionLabel, out Label value)
+        private static Control Readout(string caption, bool dynamicValue, out Label captionLabel, out Label value)
         {
-            // Use explicit rows rather than overlapping Dock=Fill/Dock=Top labels.
-            // This keeps both the caption and the live JoinFS value visible at all sizes.
-            var p = new TableLayoutPanel
+            var p = new FlowLayoutPanel
             {
                 Dock = DockStyle.Fill,
                 Margin = new Padding(4),
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = false,
                 BackColor = Color.FromArgb(8, 15, 26),
-                ColumnCount = 1,
-                RowCount = 2
+                Padding = new Padding(0, 9, 0, 0)
             };
-            p.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            p.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
-            p.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-
             captionLabel = new Label
             {
-                Dock = DockStyle.Fill,
+                AutoSize = true,
+                Margin = new Padding(0, 0, 4, 0),
                 Text = caption,
                 ForeColor = FlyLabTheme.Accent,
-                TextAlign = ContentAlignment.MiddleCenter,
+                TextAlign = ContentAlignment.MiddleLeft,
                 Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold),
                 BackColor = Color.Transparent
             };
             value = new Label
             {
-                Dock = DockStyle.Fill,
+                AutoSize = true,
+                Margin = new Padding(0),
                 Text = string.Empty,
-                ForeColor = FlyLabTheme.Text,
-                TextAlign = ContentAlignment.MiddleCenter,
-                Font = new Font("Consolas", 15F, FontStyle.Bold),
+                ForeColor = dynamicValue ? FlyLabTheme.Success : FlyLabTheme.Accent,
+                TextAlign = ContentAlignment.MiddleLeft,
+                Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold),
                 BackColor = Color.Transparent
             };
-            p.Controls.Add(captionLabel, 0, 0);
-            p.Controls.Add(value, 0, 1);
+            p.Controls.Add(captionLabel);
+            p.Controls.Add(value);
             return p;
         }
 
@@ -244,25 +241,15 @@ namespace JoinFS.FlyLab.UI
                 string xpdr = ownship.variableSet.GetInteger(vuidSquawk).ToString("D4");
                 string callsign = ownship.flightPlan.callsign ?? string.Empty;
 
-                // Compact avionics presentation: value beside its label.
-                com1Caption.Text = "COM 1:  " + com1;
-                com2Caption.Text = "COM 2:  " + com2;
-                xpdrCaption.Text = "XPDR:  " + xpdr;
-                callsignCaption.Text = "CALLSIGN:  " + callsign;
-
-                // Keep the separate value labels empty; the live values are intentionally
-                // rendered inline with the four captions.
-                com1Value.Text = string.Empty;
-                com2Value.Text = string.Empty;
-                xpdrValue.Text = string.Empty;
-                callsignValue.Text = string.Empty;
+                // Labels remain FlyLab cyan; live radio/transponder values are green.
+                // Callsign is an identity value and therefore remains cyan.
+                com1Value.Text = com1;
+                com2Value.Text = com2;
+                xpdrValue.Text = xpdr;
+                callsignValue.Text = callsign;
             }
             else
             {
-                com1Caption.Text = "COM 1";
-                com2Caption.Text = "COM 2";
-                xpdrCaption.Text = "XPDR";
-                callsignCaption.Text = "CALLSIGN";
                 com1Value.Text = string.Empty;
                 com2Value.Text = string.Empty;
                 xpdrValue.Text = string.Empty;
