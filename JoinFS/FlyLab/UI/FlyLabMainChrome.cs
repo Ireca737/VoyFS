@@ -77,15 +77,31 @@ namespace JoinFS.FlyLab.UI
             var connection = BuildConnectionDeck(form, out simulatorIndicator, out networkIndicator, out globalIndicator);
             trafficDisplay = new FlyLabTrafficDisplay();
 
-            // Give each instrument its own physical layout region. The traffic surface
-            // must not extend behind the avionics strip or the connection deck.
+            // Explicit regions avoid WinForms Dock=Fill z-order ambiguity.
+            avionicsStrip.Dock = DockStyle.Top;
+            connection.Dock = DockStyle.Bottom;
+            trafficDisplay.Dock = DockStyle.None;
+
             instrument.Controls.Add(trafficDisplay);
             instrument.Controls.Add(connection);
             instrument.Controls.Add(avionicsStrip);
-            instrument.Controls.SetChildIndex(avionicsStrip, 0);
-            instrument.Controls.SetChildIndex(connection, 1);
-            instrument.Controls.SetChildIndex(trafficDisplay, 2);
+
+            void LayoutTraffic()
+            {
+                int top = avionicsStrip.Bottom;
+                int bottom = connection.Top;
+                trafficDisplay.Bounds = new Rectangle(
+                    instrument.ClientRectangle.Left,
+                    top,
+                    instrument.ClientSize.Width,
+                    Math.Max(0, bottom - top));
+            }
+
+            instrument.Resize += (_, __) => LayoutTraffic();
+            avionicsStrip.SizeChanged += (_, __) => LayoutTraffic();
+            connection.SizeChanged += (_, __) => LayoutTraffic();
             instrument.PerformLayout();
+            LayoutTraffic();
 
             networkButton = Find<Button>(form, "Button_Network");
             simulatorButton = Find<Button>(form, "Button_Simulator");
