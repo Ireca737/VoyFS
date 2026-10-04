@@ -68,7 +68,7 @@ namespace JoinFS
                 this.main = main;
 
                 // Build the FlyLabFS operational dashboard around the existing JoinFS controls.
-                flyLabChrome = FlyLabMainChrome.Attach(this);
+                flyLabChrome = FlyLabMainChrome.Attach(this, main);
 
                 // Button_SimBrief spans the same width and left/right alignment as Button_Global (Join Global),
                 // just on the Flight Plan row - computed from Button_Global rather than hardcoded so it stays
