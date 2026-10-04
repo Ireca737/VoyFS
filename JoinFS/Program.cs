@@ -2225,6 +2225,8 @@ namespace JoinFS
                 // Application.SetHighDpiMode(HighDpiMode.SystemAware);
 #endif
                 Application.SetCompatibleTextRenderingDefault(false);
+                // FlyLab presentation-only startup screen. Keep the hook outside JoinFS core logic.
+                FlyLabSplashForm.ShowStartup();
                 main.OpenForms();
                 Application.Run(main.mainForm);
             }
