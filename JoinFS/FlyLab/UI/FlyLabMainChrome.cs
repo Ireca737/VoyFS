@@ -67,7 +67,7 @@ namespace JoinFS.FlyLab.UI
 
             var header = BuildHeader();
             var sidebar = BuildSidebar(form);
-            var instrument = new Panel { Dock = DockStyle.Fill, BackColor = FlyLabTheme.Panel, Padding = new Padding(10) };
+            var instrument = new Panel { Dock = DockStyle.Fill, BackColor = FlyLabTheme.Panel, Padding = new Padding(6) };
 
             host.Controls.Add(instrument);
             host.Controls.Add(sidebar);
@@ -173,10 +173,15 @@ namespace JoinFS.FlyLab.UI
             left.Controls.Add(ReadoutCompact("COM 1:", true, out com1Caption, out com1), 0, 0);
             left.Controls.Add(ReadoutCompact("COM 2:", true, out com2Caption, out com2), 0, 1);
 
-            var right = new Panel { Dock = DockStyle.Right, Width = 170, BackColor = Color.FromArgb(8, 15, 26) };
+            var right = new Panel { Dock = DockStyle.Right, Width = 160, BackColor = Color.FromArgb(8, 15, 26), Padding = new Padding(0, 0, 10, 0) };
             var xpdrReadout = ReadoutCompact("XPDR:", true, out xpdrCaption, out xpdr);
             xpdrReadout.Dock = DockStyle.Top;
             xpdrReadout.Height = 30;
+            if (xpdrReadout is FlowLayoutPanel xpdrFlow)
+            {
+                xpdrFlow.FlowDirection = FlowDirection.RightToLeft;
+                xpdrFlow.RightToLeft = RightToLeft.Yes;
+            }
             right.Controls.Add(xpdrReadout);
 
             // Callsign is now painted by FlyLabTrafficDisplay. These hidden labels remain
