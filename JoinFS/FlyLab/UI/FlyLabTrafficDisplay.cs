@@ -1,5 +1,6 @@
 #if !CONSOLE
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
@@ -14,7 +15,12 @@ namespace JoinFS.FlyLab.UI
     {
         private bool networkAvailable;
         private int ownshipHeadingDeg;
-        private string ownshipCallsign = string.Empty;\n        private double ownshipLatitude;\n        private double ownshipLongitude;\n        private double ownshipAltitude;\n        private IReadOnlyList<FlyLabTrafficTarget> trafficTargets = Array.Empty<FlyLabTrafficTarget>();\n        private const double TrafficRangeNm = 40.0;
+        private string ownshipCallsign = string.Empty;
+        private double ownshipLatitude;
+        private double ownshipLongitude;
+        private double ownshipAltitude;
+        private IReadOnlyList<FlyLabTrafficTarget> trafficTargets = Array.Empty<FlyLabTrafficTarget>();
+        private const double TrafficRangeNm = 40.0;
 
         internal bool NetworkAvailable
         {
@@ -39,7 +45,16 @@ namespace JoinFS.FlyLab.UI
             Invalidate();
         }
 
-        internal void SetTraffic(double latitude, double longitude, double altitude, IReadOnlyList<FlyLabTrafficTarget> targets)\n        {\n            ownshipLatitude = latitude;\n            ownshipLongitude = longitude;\n            ownshipAltitude = altitude;\n            trafficTargets = targets ?? Array.Empty<FlyLabTrafficTarget>();\n            Invalidate();\n        }\n\n        internal FlyLabTrafficDisplay()
+        internal void SetTraffic(double latitude, double longitude, double altitude, IReadOnlyList<FlyLabTrafficTarget> targets)
+        {
+            ownshipLatitude = latitude;
+            ownshipLongitude = longitude;
+            ownshipAltitude = altitude;
+            trafficTargets = targets ?? Array.Empty<FlyLabTrafficTarget>();
+            Invalidate();
+        }
+
+        internal FlyLabTrafficDisplay()
         {
             Dock = DockStyle.Fill;
             BackColor = Color.FromArgb(8, 15, 26);
@@ -138,7 +153,9 @@ namespace JoinFS.FlyLab.UI
                 g.DrawString(rightText, font, brush, cx + radius + 8, cy - rightSize.Height / 2F);
             }
 
-            DrawTrafficTargets(g, cx, cy, radius);\n\n            if (!string.IsNullOrWhiteSpace(ownshipCallsign))
+            DrawTrafficTargets(g, cx, cy, radius);
+
+            if (!string.IsNullOrWhiteSpace(ownshipCallsign))
             {
                 using var callsignFont = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
                 using var callsignBrush = new SolidBrush(FlyLabTheme.Accent);
