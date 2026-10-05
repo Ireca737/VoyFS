@@ -131,6 +131,9 @@ namespace JoinFS
 
                 // change title
                 Text = Main.Name;
+                // FlyLabFS product branding: keep the upstream build/configuration suffix.
+                if (Text.StartsWith("JoinFS-", StringComparison.OrdinalIgnoreCase))
+                    Text = "FlyLabFS-" + Text.Substring("JoinFS-".Length);
                 // change icon
                 Icon = main.icon;
                 // remove JoinFS from title
