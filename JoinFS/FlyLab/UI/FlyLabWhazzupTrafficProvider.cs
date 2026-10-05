@@ -101,7 +101,8 @@ namespace JoinFS.FlyLab.UI
                     };
 
                     if (!string.IsNullOrWhiteSpace(ownshipCallsign) &&
-                        string.Equals(item.Callsign, ownshipCallsign, StringComparison.OrdinalIgnoreCase))
+                        string.Equals(NormalizeIdentity(item.Callsign), NormalizeIdentity(ownshipCallsign),
+                            StringComparison.OrdinalIgnoreCase))
                     {
                         Ownship = item;
                         continue;
@@ -126,12 +127,40 @@ namespace JoinFS.FlyLab.UI
             string docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             if (string.IsNullOrWhiteSpace(docs) || !Directory.Exists(docs)) return null;
 
+            string preferredFolder = null;
+#if FS2020
+            preferredFolder = "JoinFS-FS2020";
+#elif FS2024
+            preferredFolder = "JoinFS-FS2024";
+#elif FSX
+            preferredFolder = "JoinFS-FSX";
+#elif P3D
+            preferredFolder = "JoinFS-P3D";
+#elif XPLANE
+            preferredFolder = "JoinFS-XPLANE";
+#endif
+            if (!string.IsNullOrWhiteSpace(preferredFolder))
+            {
+                string preferredPath = Path.Combine(docs, preferredFolder, "whazzup.txt");
+                if (File.Exists(preferredPath))
+                {
+                    whazzupPath = preferredPath;
+                    return whazzupPath;
+                }
+            }
+
             whazzupPath = Directory.EnumerateDirectories(docs, "JoinFS*")
                 .Select(d => Path.Combine(d, "whazzup.txt"))
                 .Where(File.Exists)
                 .OrderByDescending(File.GetLastWriteTimeUtc)
                 .FirstOrDefault();
             return whazzupPath;
+        }
+
+        private static string NormalizeIdentity(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+            return new string(value.Where(char.IsLetterOrDigit).ToArray()).ToUpperInvariant();
         }
 
         private static bool TryNumber(string text, out double value)
