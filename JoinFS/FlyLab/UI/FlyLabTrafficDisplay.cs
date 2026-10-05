@@ -20,7 +20,9 @@ namespace JoinFS.FlyLab.UI
         private double ownshipLongitude;
         private double ownshipAltitude;
         private IReadOnlyList<FlyLabTrafficTarget> trafficTargets = Array.Empty<FlyLabTrafficTarget>();
-        private const double TrafficRangeNm = 40.0;
+        private static readonly int[] TrafficRangesNm = { 2, 5, 10, 20, 40 };
+        private int trafficRangeIndex = TrafficRangesNm.Length - 1;
+        private readonly Label rangeLabel;
 
         internal bool NetworkAvailable
         {
@@ -63,6 +65,29 @@ namespace JoinFS.FlyLab.UI
             SetStyle(ControlStyles.AllPaintingInWmPaint |
                      ControlStyles.OptimizedDoubleBuffer |
                      ControlStyles.UserPaint, true);
+
+            var rangeMinus = BuildRangeButton("−");
+            var rangePlus = BuildRangeButton("+");
+            rangeLabel = new Label
+            {
+                AutoSize = false,
+                Size = new Size(82, 24),
+                Location = new Point(38, 8),
+                TextAlign = ContentAlignment.MiddleCenter,
+                ForeColor = FlyLabTheme.Accent,
+                BackColor = Color.Transparent,
+                Font = new Font("Segoe UI Semibold", 8F, FontStyle.Bold)
+            };
+
+            rangeMinus.Location = new Point(8, 8);
+            rangePlus.Location = new Point(124, 8);
+            rangeMinus.Click += (_, __) => ChangeRange(-1);
+            rangePlus.Click += (_, __) => ChangeRange(+1);
+
+            Controls.Add(rangeMinus);
+            Controls.Add(rangeLabel);
+            Controls.Add(rangePlus);
+            UpdateRangeLabel();
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -168,6 +193,40 @@ namespace JoinFS.FlyLab.UI
 
         }
 
+        private double CurrentTrafficRangeNm => TrafficRangesNm[trafficRangeIndex];
+
+        private static Button BuildRangeButton(string text)
+        {
+            var button = new Button
+            {
+                Size = new Size(26, 24),
+                Text = text,
+                BackColor = FlyLabTheme.Panel,
+                ForeColor = FlyLabTheme.Accent,
+                FlatStyle = FlatStyle.Flat,
+                TabStop = false,
+                Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold),
+                UseVisualStyleBackColor = false
+            };
+            button.FlatAppearance.BorderColor = FlyLabTheme.GridLine;
+            return button;
+        }
+
+        private void ChangeRange(int delta)
+        {
+            int next = Math.Max(0, Math.Min(TrafficRangesNm.Length - 1, trafficRangeIndex + delta));
+            if (next == trafficRangeIndex) return;
+            trafficRangeIndex = next;
+            UpdateRangeLabel();
+            Invalidate();
+        }
+
+        private void UpdateRangeLabel()
+        {
+            if (rangeLabel != null)
+                rangeLabel.Text = "RNG " + TrafficRangesNm[trafficRangeIndex] + " NM";
+        }
+
         private void DrawTrafficTargets(Graphics g, int cx, int cy, int radius)
         {
             if (trafficTargets == null || trafficTargets.Count == 0) return;
@@ -177,7 +236,7 @@ namespace JoinFS.FlyLab.UI
             foreach (var target in trafficTargets)
             {
                 double distanceNm = DistanceNm(ownshipLatitude, ownshipLongitude, target.Latitude, target.Longitude);
-                if (distanceNm <= 0.001 || distanceNm > TrafficRangeNm) continue;
+                if (distanceNm <= 0.001 || distanceNm > CurrentTrafficRangeNm) continue;
 
                 double deltaAlt = target.Altitude - ownshipAltitude;
                 bool proximate = distanceNm <= 6.0 && Math.Abs(deltaAlt) <= 1200.0;
@@ -185,7 +244,7 @@ namespace JoinFS.FlyLab.UI
                 double bearing = BearingDeg(ownshipLatitude, ownshipLongitude, target.Latitude, target.Longitude);
                 double relativeDeg = Normalize180(bearing - ownshipHeadingDeg);
                 double angle = relativeDeg * Math.PI / 180.0;
-                double r = radius * distanceNm / TrafficRangeNm;
+                double r = radius * distanceNm / CurrentTrafficRangeNm;
                 float x = (float)(cx + Math.Sin(angle) * r);
                 float y = (float)(cy - Math.Cos(angle) * r);
 
