@@ -54,11 +54,11 @@ namespace JoinFS.FlyLab.UI
             PlaceLabel(lAlt,408,129,187,"CRUISING ALTITUDE");
             PlaceField(from,24,150,165); PlaceField(to,216,150,165); PlaceField(alt,408,150,187);
 
-            PlaceLabel(lRoute,24,191,571,"ROUTE"); PlaceField(route,24,212,571);
-            PlaceLabel(lRemarks,24,253,571,"REMARKS"); PlaceField(remarks,24,274,571);
+            PlaceLabel(lRoute,24,191,571,"ROUTE"); PlaceMultiField(route,24,212,571,58);
+            PlaceLabel(lRemarks,24,282,571,"REMARKS"); PlaceMultiField(remarks,24,303,571,92);
 
-            PlaceLabel(lSB,24,318,80,"SIMBRIEF"); PlaceField(sb,112,315,270);
-            PlaceButton(import,395,314,200,30,true);
+            PlaceLabel(lSB,24,420,80,"SIMBRIEF"); PlaceField(sb,112,417,270);
+            PlaceButton(import,395,416,200,30,true);
             if(import!=null) import.Text="IMPORTA DA SIMBRIEF";
             if(lStatus!=null) {
                 lStatus.Location=new Point(112,448); lStatus.Size=new Size(483,20);
@@ -66,10 +66,10 @@ namespace JoinFS.FlyLab.UI
                 lStatus.Font=new Font("Segoe UI Semibold",8.5F,FontStyle.Bold);
             }
 
-            AddRule(form,24,371,571);
-            PlaceButton(clear,24,386,145,32,false); PlaceButton(cancel,365,386,105,32,false);
-            PlaceButton(ok,482,386,113,32,true);
-            if(clear!=null) clear.Text="AZZERA PIANO";
+            AddRule(form,24,486,571);
+            PlaceButton(clear,24,505,145,32,false); PlaceButton(cancel,257,505,105,32,false);
+            PlaceButton(ok,450,505,145,32,true);
+            if(clear!=null) clear.Text="AZZERA FPL";
             if(cancel!=null) cancel.Text="ANNULLA";
             if(ok!=null) ok.Text="INVIA FPL";
 
