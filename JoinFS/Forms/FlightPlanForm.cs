@@ -53,6 +53,9 @@ namespace JoinFS
             Text_Altitude.Font = main.dataFont;
             Text_SimBriefUsername.Font = main.dataFont;
 
+            // FlyLabFS presentation layer: runtime-only skin, no Designer/layout ownership.
+            FlyLab.UI.FlyLabFlightPlanChrome.Apply(this);
+
             if (Settings.Default.ToolTips)
             {
                 ToolTip tip = new() { ShowAlways = true, IsBalloon = true, AutomaticDelay = 2000 };
