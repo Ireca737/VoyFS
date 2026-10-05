@@ -13,7 +13,8 @@ namespace JoinFS.FlyLab.UI
     internal sealed class FlyLabMainChrome
     {
         private readonly Form form;
-        private readonly FlyLabTrafficDisplay trafficDisplay;\n        private readonly FlyLabWhazzupTrafficProvider trafficProvider = new FlyLabWhazzupTrafficProvider();
+        private readonly FlyLabTrafficDisplay trafficDisplay;
+        private readonly FlyLabWhazzupTrafficProvider trafficProvider = new FlyLabWhazzupTrafficProvider();
         private readonly Button networkButton;
         private readonly Button simulatorButton;
         private readonly Button globalButton;
