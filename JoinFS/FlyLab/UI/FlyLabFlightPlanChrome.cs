@@ -18,7 +18,7 @@ namespace JoinFS.FlyLab.UI
             form.SuspendLayout();
             form.BackColor = Paper; form.ForeColor = Ink;
             form.Font = new Font("Segoe UI", 9F);
-            form.ClientSize = new Size(620, 430);
+            form.ClientSize = new Size(620, 570);
 
             Label lCall=Find<Label>(form,"label1"), lType=Find<Label>(form,"label2"),
                 lFrom=Find<Label>(form,"label3"), lTo=Find<Label>(form,"label4"),
@@ -47,7 +47,7 @@ namespace JoinFS.FlyLab.UI
             AddRule(form,24,51,571);
 
             PlaceLabel(lCall,24,67,165,"CALLSIGN"); PlaceLabel(lRules,216,67,120,"FLIGHT RULES");
-            PlaceLabel(lType,363,67,232,"AIRCRAFT TYPE");
+            PlaceLabel(lType,363,67,232,"AIRCRAFT (ICAO COD)");
             PlaceField(call,24,88,165); PlaceCombo(rules,216,88,120); PlaceField(type,363,88,232);
 
             PlaceLabel(lFrom,24,129,165,"DEPARTURE"); PlaceLabel(lTo,216,129,165,"DESTINATION");
@@ -61,7 +61,7 @@ namespace JoinFS.FlyLab.UI
             PlaceButton(import,395,314,200,30,true);
             if(import!=null) import.Text="IMPORTA DA SIMBRIEF";
             if(lStatus!=null) {
-                lStatus.Location=new Point(112,346); lStatus.Size=new Size(483,20);
+                lStatus.Location=new Point(112,448); lStatus.Size=new Size(483,20);
                 lStatus.ForeColor=Color.FromArgb(24,92,126); lStatus.BackColor=Color.Transparent;
                 lStatus.Font=new Font("Segoe UI Semibold",8.5F,FontStyle.Bold);
             }
@@ -71,7 +71,7 @@ namespace JoinFS.FlyLab.UI
             PlaceButton(ok,482,386,113,32,true);
             if(clear!=null) clear.Text="AZZERA PIANO";
             if(cancel!=null) cancel.Text="ANNULLA";
-            if(ok!=null) ok.Text="INVIA";
+            if(ok!=null) ok.Text="INVIA FPL";
 
             form.ResumeLayout(false); form.PerformLayout();
         }
@@ -90,6 +90,11 @@ namespace JoinFS.FlyLab.UI
         static void PlaceField(TextBox f,int x,int y,int w) {
             if(f==null)return; f.Location=new Point(x,y); f.Size=new Size(w,26); f.BackColor=Field; f.ForeColor=Ink;
             f.BorderStyle=BorderStyle.FixedSingle; f.Font=new Font("Consolas",10F);
+        }
+        static void PlaceMultiField(TextBox f,int x,int y,int w,int h) {
+            if(f==null)return; f.Location=new Point(x,y); f.Size=new Size(w,h); f.BackColor=Field; f.ForeColor=Ink;
+            f.BorderStyle=BorderStyle.FixedSingle; f.Font=new Font("Consolas",10F);
+            f.Multiline=true; f.ScrollBars=ScrollBars.Vertical; f.AcceptsReturn=true;
         }
         static void PlaceCombo(ComboBox c,int x,int y,int w) {
             if(c==null)return; c.Location=new Point(x,y); c.Size=new Size(w,26); c.BackColor=Field; c.ForeColor=Ink;
