@@ -197,6 +197,9 @@ namespace JoinFS
             Text_HubVoIP.Font = main.dataFont;
             Text_PluginAddress.Font = main.dataFont;
             Text_SimBriefUsername.Font = main.dataFont;
+
+            // FlyLabFS presentation layer: runtime-only skin, no Designer/layout ownership.
+            FlyLab.UI.FlyLabSettingsChrome.Apply(this);
         }
 
         private void Button_OK_Click(object sender, EventArgs e)
