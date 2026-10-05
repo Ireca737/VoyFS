@@ -172,14 +172,15 @@ namespace JoinFS.FlyLab.UI
         {
             if (trafficTargets == null || trafficTargets.Count == 0) return;
 
-            using var pen = new Pen(FlyLabTheme.Success, 2F);
             using var font = new Font("Segoe UI Semibold", 8F, FontStyle.Bold);
-            using var brush = new SolidBrush(FlyLabTheme.Success);
 
             foreach (var target in trafficTargets)
             {
                 double distanceNm = DistanceNm(ownshipLatitude, ownshipLongitude, target.Latitude, target.Longitude);
                 if (distanceNm <= 0.001 || distanceNm > TrafficRangeNm) continue;
+
+                double deltaAlt = target.Altitude - ownshipAltitude;
+                bool proximate = distanceNm <= 6.0 && Math.Abs(deltaAlt) <= 1200.0;
 
                 double bearing = BearingDeg(ownshipLatitude, ownshipLongitude, target.Latitude, target.Longitude);
                 double relativeDeg = Normalize180(bearing - ownshipHeadingDeg);
@@ -188,17 +189,30 @@ namespace JoinFS.FlyLab.UI
                 float x = (float)(cx + Math.Sin(angle) * r);
                 float y = (float)(cy - Math.Cos(angle) * r);
 
+                // Approved baseline TCAS symbology:
+                // Other Traffic = hollow diamond; Proximate Traffic = filled diamond.
+                // Both remain non-alert cyan/white. TA/RA colors are intentionally reserved
+                // until a real threat-assessment layer exists.
+                Color trafficColor = FlyLabTheme.Accent;
+                using var pen = new Pen(trafficColor, 2F);
+                using var brush = new SolidBrush(trafficColor);
+
                 const float s = 6F;
                 PointF[] diamond =
                 {
                     new PointF(x, y - s), new PointF(x + s, y),
                     new PointF(x, y + s), new PointF(x - s, y)
                 };
-                g.DrawPolygon(pen, diamond);
+                if (proximate)
+                    g.FillPolygon(brush, diamond);
+                else
+                    g.DrawPolygon(pen, diamond);
 
-                double deltaAlt = target.Altitude - ownshipAltitude;
-                string altitudeText = (deltaAlt >= 0 ? "+" : "-") +
-                    Math.Abs((int)Math.Round(deltaAlt / 100.0)).ToString("D2");
+                string altitudeText = deltaAlt > 0
+                    ? "+" + Math.Abs((int)Math.Round(deltaAlt / 100.0)).ToString("D2")
+                    : deltaAlt < 0
+                        ? "-" + Math.Abs((int)Math.Round(deltaAlt / 100.0)).ToString("D2")
+                        : "00";
                 string label = target.PilotId + "  " + altitudeText;
                 g.DrawString(label, font, brush, x + 9F, y - 8F);
             }
