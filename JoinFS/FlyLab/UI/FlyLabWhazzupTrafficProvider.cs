@@ -25,7 +25,8 @@ namespace JoinFS.FlyLab.UI
     internal sealed class FlyLabWhazzupTrafficProvider
     {
         private DateTime nextPathProbeUtc;
-        private string whazzupPath;\n        internal FlyLabTrafficTarget Ownship { get; private set; }
+        private string whazzupPath;
+        internal FlyLabTrafficTarget Ownship { get; private set; }
 
         internal IReadOnlyList<FlyLabTrafficTarget> ReadVoyTraffic(string ownshipCallsign)
         {
@@ -48,7 +49,8 @@ namespace JoinFS.FlyLab.UI
                     lines = list.ToArray();
                 }
 
-                var targets = new List<FlyLabTrafficTarget>();\n                Ownship = null;
+                var targets = new List<FlyLabTrafficTarget>();
+                Ownship = null;
                 bool clients = false;
                 foreach (string line in lines)
                 {
