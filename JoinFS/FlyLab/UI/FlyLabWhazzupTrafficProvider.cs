@@ -100,9 +100,10 @@ namespace JoinFS.FlyLab.UI
                         Heading = ((heading % 360) + 360) % 360
                     };
 
-                    if (!string.IsNullOrWhiteSpace(ownshipCallsign) &&
-                        string.Equals(NormalizeIdentity(item.Callsign), NormalizeIdentity(ownshipCallsign),
-                            StringComparison.OrdinalIgnoreCase))
+                    // Local owner record in whazzup: role PILOT with empty pilot identity field.
+                    // Example: VRECA:::PILOT:...
+                    bool isOwner = string.IsNullOrWhiteSpace(f[1]);
+                    if (isOwner)
                     {
                         Ownship = item;
                         continue;
@@ -155,12 +156,6 @@ namespace JoinFS.FlyLab.UI
                 .OrderByDescending(File.GetLastWriteTimeUtc)
                 .FirstOrDefault();
             return whazzupPath;
-        }
-
-        private static string NormalizeIdentity(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value)) return string.Empty;
-            return new string(value.Where(char.IsLetterOrDigit).ToArray()).ToUpperInvariant();
         }
 
         private static bool TryNumber(string text, out double value)
