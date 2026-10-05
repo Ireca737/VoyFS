@@ -14,7 +14,7 @@ namespace JoinFS.FlyLab.UI
     {
         private bool networkAvailable;
         private int ownshipHeadingDeg;
-        private string ownshipCallsign = string.Empty;
+        private string ownshipCallsign = string.Empty;\n        private double ownshipLatitude;\n        private double ownshipLongitude;\n        private double ownshipAltitude;\n        private IReadOnlyList<FlyLabTrafficTarget> trafficTargets = Array.Empty<FlyLabTrafficTarget>();\n        private const double TrafficRangeNm = 40.0;
 
         internal bool NetworkAvailable
         {
@@ -39,7 +39,7 @@ namespace JoinFS.FlyLab.UI
             Invalidate();
         }
 
-        internal FlyLabTrafficDisplay()
+        internal void SetTraffic(double latitude, double longitude, double altitude, IReadOnlyList<FlyLabTrafficTarget> targets)\n        {\n            ownshipLatitude = latitude;\n            ownshipLongitude = longitude;\n            ownshipAltitude = altitude;\n            trafficTargets = targets ?? Array.Empty<FlyLabTrafficTarget>();\n            Invalidate();\n        }\n\n        internal FlyLabTrafficDisplay()
         {
             Dock = DockStyle.Fill;
             BackColor = Color.FromArgb(8, 15, 26);
@@ -138,7 +138,7 @@ namespace JoinFS.FlyLab.UI
                 g.DrawString(rightText, font, brush, cx + radius + 8, cy - rightSize.Height / 2F);
             }
 
-            if (!string.IsNullOrWhiteSpace(ownshipCallsign))
+            DrawTrafficTargets(g, cx, cy, radius);\n\n            if (!string.IsNullOrWhiteSpace(ownshipCallsign))
             {
                 using var callsignFont = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
                 using var callsignBrush = new SolidBrush(FlyLabTheme.Accent);
@@ -149,6 +149,71 @@ namespace JoinFS.FlyLab.UI
                     ClientSize.Height - size.Height - 8F);
             }
 
+        }
+
+        private void DrawTrafficTargets(Graphics g, int cx, int cy, int radius)
+        {
+            if (trafficTargets == null || trafficTargets.Count == 0) return;
+
+            using var pen = new Pen(FlyLabTheme.Success, 2F);
+            using var font = new Font("Segoe UI Semibold", 8F, FontStyle.Bold);
+            using var brush = new SolidBrush(FlyLabTheme.Success);
+
+            foreach (var target in trafficTargets)
+            {
+                double distanceNm = DistanceNm(ownshipLatitude, ownshipLongitude, target.Latitude, target.Longitude);
+                if (distanceNm <= 0.001 || distanceNm > TrafficRangeNm) continue;
+
+                double bearing = BearingDeg(ownshipLatitude, ownshipLongitude, target.Latitude, target.Longitude);
+                double relativeDeg = Normalize180(bearing - ownshipHeadingDeg);
+                double angle = relativeDeg * Math.PI / 180.0;
+                double r = radius * distanceNm / TrafficRangeNm;
+                float x = (float)(cx + Math.Sin(angle) * r);
+                float y = (float)(cy - Math.Cos(angle) * r);
+
+                const float s = 6F;
+                PointF[] diamond =
+                {
+                    new PointF(x, y - s), new PointF(x + s, y),
+                    new PointF(x, y + s), new PointF(x - s, y)
+                };
+                g.DrawPolygon(pen, diamond);
+
+                double deltaAlt = target.Altitude - ownshipAltitude;
+                string altitudeText = (deltaAlt >= 0 ? "+" : "-") +
+                    Math.Abs((int)Math.Round(deltaAlt / 100.0)).ToString("D2");
+                string label = target.PilotId + "  " + altitudeText;
+                g.DrawString(label, font, brush, x + 9F, y - 8F);
+            }
+        }
+
+        private static double DistanceNm(double lat1, double lon1, double lat2, double lon2)
+        {
+            const double earthNm = 3440.065;
+            double p1 = lat1 * Math.PI / 180.0;
+            double p2 = lat2 * Math.PI / 180.0;
+            double dp = (lat2 - lat1) * Math.PI / 180.0;
+            double dl = (lon2 - lon1) * Math.PI / 180.0;
+            double a = Math.Sin(dp / 2) * Math.Sin(dp / 2) +
+                       Math.Cos(p1) * Math.Cos(p2) * Math.Sin(dl / 2) * Math.Sin(dl / 2);
+            return earthNm * 2.0 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1.0 - a));
+        }
+
+        private static double BearingDeg(double lat1, double lon1, double lat2, double lon2)
+        {
+            double p1 = lat1 * Math.PI / 180.0;
+            double p2 = lat2 * Math.PI / 180.0;
+            double dl = (lon2 - lon1) * Math.PI / 180.0;
+            double y = Math.Sin(dl) * Math.Cos(p2);
+            double x = Math.Cos(p1) * Math.Sin(p2) - Math.Sin(p1) * Math.Cos(p2) * Math.Cos(dl);
+            return (Math.Atan2(y, x) * 180.0 / Math.PI + 360.0) % 360.0;
+        }
+
+        private static double Normalize180(double degrees)
+        {
+            degrees = (degrees + 180.0) % 360.0;
+            if (degrees < 0) degrees += 360.0;
+            return degrees - 180.0;
         }
 
         private static void DrawCentered(Graphics g, string text, Font font, Brush brush, float x, float y)
