@@ -25,9 +25,9 @@ namespace JoinFS.FlyLab.UI
     internal sealed class FlyLabWhazzupTrafficProvider
     {
         private DateTime nextPathProbeUtc;
-        private string whazzupPath;
+        private string whazzupPath;\n        internal FlyLabTrafficTarget Ownship { get; private set; }
 
-        internal IReadOnlyList<FlyLabTrafficTarget> ReadVoyTraffic()
+        internal IReadOnlyList<FlyLabTrafficTarget> ReadVoyTraffic(string ownshipCallsign)
         {
             try
             {
@@ -48,7 +48,7 @@ namespace JoinFS.FlyLab.UI
                     lines = list.ToArray();
                 }
 
-                var targets = new List<FlyLabTrafficTarget>();
+                var targets = new List<FlyLabTrafficTarget>();\n                Ownship = null;
                 bool clients = false;
                 foreach (string line in lines)
                 {
@@ -64,21 +64,19 @@ namespace JoinFS.FlyLab.UI
                     if (f.Length < 10 || !string.Equals(f[3], "PILOT", StringComparison.OrdinalIgnoreCase))
                         continue;
 
-                    // VOY membership is intentionally determined by the JoinFS pilot identity,
-                    // not by aircraft callsign. Current whazzup records expose it in fields 1/2.
-                    string pilotId = f.Length > 1 ? f[1].Trim() : string.Empty;
-                    if (!pilotId.StartsWith("VOY", StringComparison.OrdinalIgnoreCase))
-                    {
-                        string alternate = f.Length > 2 ? f[2].Trim() : string.Empty;
-                        if (!alternate.StartsWith("VOY", StringComparison.OrdinalIgnoreCase))
-                            continue;
-                        pilotId = alternate;
-                    }
-
                     if (!TryNumber(f[5], out double lat) ||
                         !TryNumber(f[6], out double lon) ||
                         !TryNumber(f[7], out double altitude))
                         continue;
+
+                    // VOY membership is intentionally determined by the JoinFS pilot identity,
+                    // not by aircraft callsign. Current whazzup records expose it in fields 1/2.
+                    string pilotId = f.Length > 1 ? f[1].Trim() : string.Empty;
+                    string alternate = f.Length > 2 ? f[2].Trim() : string.Empty;
+                    bool isVoy = pilotId.StartsWith("VOY", StringComparison.OrdinalIgnoreCase) ||
+                                 alternate.StartsWith("VOY", StringComparison.OrdinalIgnoreCase);
+                    if (!pilotId.StartsWith("VOY", StringComparison.OrdinalIgnoreCase) && isVoy)
+                        pilotId = alternate;
 
                     TryNumber(f[8], out double speed);
                     int heading = 0;
@@ -89,7 +87,7 @@ namespace JoinFS.FlyLab.UI
                             break;
                     }
 
-                    targets.Add(new FlyLabTrafficTarget
+                    var item = new FlyLabTrafficTarget
                     {
                         Callsign = f[0].Trim(),
                         PilotId = pilotId,
@@ -98,7 +96,17 @@ namespace JoinFS.FlyLab.UI
                         Altitude = altitude,
                         GroundSpeed = speed,
                         Heading = ((heading % 360) + 360) % 360
-                    });
+                    };
+
+                    if (!string.IsNullOrWhiteSpace(ownshipCallsign) &&
+                        string.Equals(item.Callsign, ownshipCallsign, StringComparison.OrdinalIgnoreCase))
+                    {
+                        Ownship = item;
+                        continue;
+                    }
+
+                    if (isVoy)
+                        targets.Add(item);
                 }
                 return targets;
             }
