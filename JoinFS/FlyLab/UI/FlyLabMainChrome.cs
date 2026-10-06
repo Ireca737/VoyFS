@@ -2,6 +2,7 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
+using JoinFS.FlyLab.Integration;
 
 namespace JoinFS.FlyLab.UI
 {
@@ -15,6 +16,7 @@ namespace JoinFS.FlyLab.UI
         private readonly Form form;
         private readonly FlyLabTrafficDisplay trafficDisplay;
         private readonly FlyLabWhazzupTrafficProvider trafficProvider = new FlyLabWhazzupTrafficProvider();
+        private readonly VaBaseMonitor vaBaseMonitor = new VaBaseMonitor();
         private readonly Button networkButton;
         private readonly Button simulatorButton;
         private readonly Button globalButton;
@@ -309,6 +311,16 @@ namespace JoinFS.FlyLab.UI
             MirrorState(simulatorButton, simulatorIndicator);
             MirrorState(networkButton, networkIndicator);
             MirrorState(globalButton, globalIndicator);
+
+            // Phase 3A ACARS integration: expose only the live VaBase flight stage.
+            // The ACARS status indicator remains intentionally unbound until the next phase.
+            var vaBase = vaBaseMonitor.Read();
+            if (!vaBase.IsRunning)
+                trafficDisplay.SetAcarsStage("NO ACARS");
+            else if (string.IsNullOrWhiteSpace(vaBase.FlightStage))
+                trafficDisplay.SetAcarsStage("UNKNOWN");
+            else
+                trafficDisplay.SetAcarsStage(vaBase.FlightStage);
 
             // JoinFS is the sole source of truth for ownship avionics. FlyLab only presents
             // the values while the local user aircraft and its variable set are available.
