@@ -57,12 +57,24 @@ namespace JoinFS.FlyLab.Integration
 
                 return new VaBaseSnapshot(true, stage);
             }
-            catch
+            catch (Exception ex)
             {
-                // VaBase can disappear between process discovery and UIA access.
+                // Diagnostic phase: preserve the failure point instead of silently
+                // collapsing every UI Automation exception into NO ACARS.
+                string detail = UnwrapException(ex);
+                Debug.WriteLine("[FlyLab ACARS] " + detail);
                 Reset();
-                return new VaBaseSnapshot(false, string.Empty);
+                return new VaBaseSnapshot(true, "UIA ERROR: " + detail);
             }
+        }
+
+        private static string UnwrapException(Exception ex)
+        {
+            Exception current = ex;
+            while (current is TargetInvocationException tie && tie.InnerException != null)
+                current = tie.InnerException;
+
+            return current.GetType().Name + ": " + current.Message;
         }
 
         private void EnsureUiAutomation()
