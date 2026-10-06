@@ -30,9 +30,9 @@ namespace JoinFS.FlyLab.Integration
             var startInfo = new ProcessStartInfo
             {
                 FileName = "powershell.exe",
-                Arguments = "-NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -EncodedCommand " + encoded,
+                Arguments = "-NoLogo -NoProfile -EncodedCommand " + encoded,
                 UseShellExecute = false,
-                CreateNoWindow = true
+                CreateNoWindow = false
             };
 
             startInfo.Environment["WHAACARS_OUTPUT"] = OutputPath;
@@ -82,6 +82,10 @@ function Find-ById($Root, $Id) {
         $cond
     )
 }
+
+Write-Host 'WhaACARS EMBEDDED UIA DIAGNOSTIC - CTRL+C per terminare'
+Write-Host ('Worker PID=' + $PID + ' Parent PID=' + $ParentPid)
+Write-Host ''
 
 while ($true) {
     if ($null -eq (Get-Process -Id $ParentPid -ErrorAction SilentlyContinue)) { break }
@@ -143,6 +147,11 @@ while ($true) {
     catch {
         $status = 'ERROR'
     }
+
+    $time = Get-Date -Format 'HH:mm:ss.fff'
+    Write-Host ($time + ' | STATUS=' + $status + ' | STAGE=' + $flightStage +
+        ' | START=' + $startFound + '/' + $startEnabled +
+        ' | ABORT=' + $abortFound + '/' + $abortEnabled)
 
     $signature = @(
         $available
