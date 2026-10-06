@@ -95,6 +95,7 @@ while ($true) {
     $startFound = $false
     $abortFound = $false
     $uiaError = ''
+    $treeSample = @()
 
     try {
         $p = Get-Process vaBaseLive -ErrorAction SilentlyContinue |
@@ -108,6 +109,26 @@ while ($true) {
             $root = [System.Windows.Automation.AutomationElement]::FromHandle(
                 $p.MainWindowHandle)
             $rootFound = ($null -ne $root)
+
+            if ($root) {
+                try {
+                    $all = $root.FindAll(
+                        [System.Windows.Automation.TreeScope]::Descendants,
+                        [System.Windows.Automation.Condition]::TrueCondition)
+                    $limit = [Math]::Min($all.Count, 80)
+                    for ($i = 0; $i -lt $limit; $i++) {
+                        $el = $all.Item($i)
+                        $treeSample += [ordered]@{
+                            automationId = $el.Current.AutomationId
+                            name = $el.Current.Name
+                            controlType = $el.Current.ControlType.ProgrammaticName
+                            className = $el.Current.ClassName
+                        }
+                    }
+                } catch {
+                    $uiaError = 'TREE: ' + $_.Exception.GetType().FullName + ': ' + $_.Exception.Message
+                }
+            }
 
             $stage = Find-ById $root 'lblStage'
             $stageFound = ($null -ne $stage)
@@ -182,6 +203,8 @@ while ($true) {
                 btnStartFlightFound = $startFound
                 btnAbortFlightFound = $abortFound
                 uiaError = $uiaError
+                treeCount = $treeSample.Count
+                treeSample = $treeSample
             }
             sequence = $Sequence
             timestamp = (Get-Date).ToString('o')
