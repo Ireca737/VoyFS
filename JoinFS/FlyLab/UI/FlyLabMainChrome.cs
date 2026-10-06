@@ -21,6 +21,7 @@ namespace JoinFS.FlyLab.UI
         private readonly Button networkIndicator;
         private readonly Button simulatorIndicator;
         private readonly Button globalIndicator;
+        private readonly Button acarsIndicator;
         private readonly Panel avionicsStrip;
         private readonly Label com1Value;
         private readonly Label com2Value;
@@ -71,7 +72,7 @@ namespace JoinFS.FlyLab.UI
             host.Controls.Add(header);
 
             avionicsStrip = BuildAvionicsStrip(out com1Caption, out com1Value, out com2Caption, out com2Value, out xpdrCaption, out xpdrValue, out callsignCaption, out callsignValue);
-            var connection = BuildConnectionDeck(form, out simulatorIndicator, out networkIndicator, out globalIndicator);
+            var connection = BuildConnectionDeck(form, out simulatorIndicator, out networkIndicator, out globalIndicator, out acarsIndicator);
             trafficDisplay = new FlyLabTrafficDisplay();
 
             // Explicit regions avoid WinForms Dock=Fill z-order ambiguity.
@@ -266,16 +267,25 @@ namespace JoinFS.FlyLab.UI
             return p;
         }
 
-        private static Panel BuildConnectionDeck(Form form, out Button simulatorIndicator, out Button networkIndicator, out Button globalIndicator)
+        private static Panel BuildConnectionDeck(Form form, out Button simulatorIndicator, out Button networkIndicator, out Button globalIndicator, out Button acarsIndicator)
         {
             var panel = new Panel { Dock = DockStyle.Bottom, Height = 125, BackColor = Color.FromArgb(8, 15, 26), Padding = new Padding(10, 4, 10, 6) };
             var status = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 48, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, BackColor = FlyLabTheme.Surface };
             simulatorIndicator = ProxyButton(form, "SIMULATORE", "Button_Simulator", 150);
             networkIndicator = ProxyButton(form, "RETE", "Button_Network", 150);
             globalIndicator = ProxyButton(form, "GLOBALE", "Button_Global", 150);
+
+            // Phase 2 ACARS layout: add the fourth semantic status indicator.
+            // Functional VaBase binding is intentionally deferred to the next phase.
+            acarsIndicator = ButtonStyle("ACARS", 150);
+            acarsIndicator.BackColor = JoinFS.Properties.Settings.Default.ColourInactiveBackground;
+            acarsIndicator.ForeColor = JoinFS.Properties.Settings.Default.ColourInactiveText;
+            acarsIndicator.TabStop = false;
+
             status.Controls.Add(simulatorIndicator);
             status.Controls.Add(networkIndicator);
             status.Controls.Add(globalIndicator);
+            status.Controls.Add(acarsIndicator);
 
             var join = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 48, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, BackColor = FlyLabTheme.Surface };
             join.Controls.Add(ProxyButton(form, "CREA", "Button_Create", 110));
