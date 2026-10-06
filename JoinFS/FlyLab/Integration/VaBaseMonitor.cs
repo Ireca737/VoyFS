@@ -2,27 +2,28 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 
 namespace JoinFS.FlyLab.Integration
 {
     /// <summary>
     /// Read-only observer for the VaBase desktop client.
-    /// Uses the native Windows UI Automation COM client dynamically:
-    /// no process injection, memory access or network inspection.
+    /// Uses the managed Windows UI Automation API through reflection so the
+    /// FlyLab layer does not require compile-time UIAutomation references.
     /// </summary>
     internal sealed class VaBaseMonitor
     {
         private const string ProcessName = "vaBaseLive";
         private const string StageAutomationId = "lblStage";
 
-        // Native UI Automation constants.
-        private const int UIA_AutomationIdPropertyId = 30011;
-        private const int TreeScopeDescendants = 4;
-
         private int processId = -1;
         private IntPtr windowHandle = IntPtr.Zero;
-        private dynamic automation;
-        private dynamic stageElement;
+        private object stageElement;
+
+        private Assembly uiAutomationAssembly;
+        private Type automationElementType;
+        private Type propertyConditionType;
+        private Type treeScopeType;
 
         internal VaBaseSnapshot Read()
         {
@@ -41,13 +42,12 @@ namespace JoinFS.FlyLab.Integration
                 {
                     processId = process.Id;
                     windowHandle = process.MainWindowHandle;
-                    EnsureAutomation();
                     stageElement = FindStageElement(windowHandle);
                 }
 
                 string stage = ReadStageName(stageElement);
 
-                // If the cached element became stale, resolve it once more.
+                // If the cached automation element became stale, resolve it once more.
                 if (string.IsNullOrWhiteSpace(stage))
                 {
                     stageElement = FindStageElement(windowHandle);
@@ -64,47 +64,83 @@ namespace JoinFS.FlyLab.Integration
             }
         }
 
-        private void EnsureAutomation()
+        private void EnsureUiAutomation()
         {
-            if (automation != null)
+            if (uiAutomationAssembly != null)
                 return;
 
-            Type automationType =
-                Type.GetTypeFromProgID("UIAutomationClient.CUIAutomation8")
-                ?? Type.GetTypeFromProgID("UIAutomationClient.CUIAutomation");
+            uiAutomationAssembly = Assembly.Load("UIAutomationClient");
 
-            if (automationType == null)
-                throw new InvalidOperationException("Windows UI Automation is not available.");
+            automationElementType = uiAutomationAssembly.GetType(
+                "System.Windows.Automation.AutomationElement",
+                throwOnError: true);
 
-            automation = Activator.CreateInstance(automationType);
+            propertyConditionType = uiAutomationAssembly.GetType(
+                "System.Windows.Automation.PropertyCondition",
+                throwOnError: true);
+
+            treeScopeType = uiAutomationAssembly.GetType(
+                "System.Windows.Automation.TreeScope",
+                throwOnError: true);
         }
 
-        private dynamic FindStageElement(IntPtr handle)
+        private object FindStageElement(IntPtr handle)
         {
             if (handle == IntPtr.Zero)
                 return null;
 
-            EnsureAutomation();
+            EnsureUiAutomation();
 
-            dynamic root = automation.ElementFromHandle(handle);
+            var fromHandle = automationElementType.GetMethod(
+                "FromHandle",
+                BindingFlags.Public | BindingFlags.Static,
+                binder: null,
+                types: new[] { typeof(IntPtr) },
+                modifiers: null);
+
+            object root = fromHandle?.Invoke(null, new object[] { handle });
             if (root == null)
                 return null;
 
-            dynamic condition = automation.CreatePropertyCondition(
-                UIA_AutomationIdPropertyId,
-                StageAutomationId);
+            object automationIdProperty = automationElementType
+                .GetProperty("AutomationIdProperty", BindingFlags.Public | BindingFlags.Static)
+                ?.GetValue(null);
 
-            return root.FindFirst(TreeScopeDescendants, condition);
+            if (automationIdProperty == null)
+                return null;
+
+            object condition = Activator.CreateInstance(
+                propertyConditionType,
+                new[] { automationIdProperty, (object)StageAutomationId });
+
+            object descendants = Enum.Parse(treeScopeType, "Descendants");
+
+            MethodInfo findFirst = automationElementType.GetMethod(
+                "FindFirst",
+                BindingFlags.Public | BindingFlags.Instance);
+
+            return findFirst?.Invoke(root, new[] { descendants, condition });
         }
 
-        private static string ReadStageName(dynamic element)
+        private string ReadStageName(object element)
         {
             if (element == null)
                 return string.Empty;
 
             try
             {
-                return ((string)element.CurrentName)?.Trim() ?? string.Empty;
+                object current = automationElementType
+                    .GetProperty("Current", BindingFlags.Public | BindingFlags.Instance)
+                    ?.GetValue(element);
+
+                if (current == null)
+                    return string.Empty;
+
+                object name = current.GetType()
+                    .GetProperty("Name", BindingFlags.Public | BindingFlags.Instance)
+                    ?.GetValue(current);
+
+                return name?.ToString()?.Trim() ?? string.Empty;
             }
             catch
             {
