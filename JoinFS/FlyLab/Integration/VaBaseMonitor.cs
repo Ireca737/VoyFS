@@ -20,7 +20,8 @@ namespace JoinFS.FlyLab.Integration
         private IntPtr windowHandle = IntPtr.Zero;
         private object stageElement;
 
-        private Assembly uiAutomationAssembly;
+        private Assembly uiAutomationClientAssembly;
+        private Assembly uiAutomationTypesAssembly;
         private Type automationElementType;
         private Type propertyConditionType;
         private Type treeScopeType;
@@ -66,20 +67,24 @@ namespace JoinFS.FlyLab.Integration
 
         private void EnsureUiAutomation()
         {
-            if (uiAutomationAssembly != null)
+            if (uiAutomationClientAssembly != null && uiAutomationTypesAssembly != null)
                 return;
 
-            uiAutomationAssembly = Assembly.Load("UIAutomationClient");
+            // PowerShell requires both assemblies before the same UIA query works.
+            // AutomationElement lives in UIAutomationClient, while condition/scope
+            // types are provided by UIAutomationTypes.
+            uiAutomationTypesAssembly = Assembly.Load("UIAutomationTypes");
+            uiAutomationClientAssembly = Assembly.Load("UIAutomationClient");
 
-            automationElementType = uiAutomationAssembly.GetType(
+            automationElementType = uiAutomationClientAssembly.GetType(
                 "System.Windows.Automation.AutomationElement",
                 throwOnError: true);
 
-            propertyConditionType = uiAutomationAssembly.GetType(
+            propertyConditionType = uiAutomationTypesAssembly.GetType(
                 "System.Windows.Automation.PropertyCondition",
                 throwOnError: true);
 
-            treeScopeType = uiAutomationAssembly.GetType(
+            treeScopeType = uiAutomationTypesAssembly.GetType(
                 "System.Windows.Automation.TreeScope",
                 throwOnError: true);
         }
