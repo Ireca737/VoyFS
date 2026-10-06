@@ -16,6 +16,7 @@ namespace JoinFS.FlyLab.UI
         private bool networkAvailable;
         private int ownshipHeadingDeg;
         private string ownshipCallsign = string.Empty;
+        private string acarsStage = "NO ACARS";
         private double ownshipLatitude;
         private double ownshipLongitude;
         private double ownshipAltitude;
@@ -44,6 +45,14 @@ namespace JoinFS.FlyLab.UI
         internal void SetOwnshipCallsign(string callsign)
         {
             ownshipCallsign = callsign ?? string.Empty;
+            Invalidate();
+        }
+
+        internal void SetAcarsStage(string stage)
+        {
+            string next = string.IsNullOrWhiteSpace(stage) ? "NO ACARS" : stage.Trim();
+            if (string.Equals(acarsStage, next, StringComparison.Ordinal)) return;
+            acarsStage = next;
             Invalidate();
         }
 
@@ -191,6 +200,26 @@ namespace JoinFS.FlyLab.UI
                 g.DrawString(text, callsignFont, callsignBrush,
                     14F,
                     ClientSize.Height - size.Height - 8F);
+            }
+
+            // Phase 3A: show the live VaBase flight stage on the lower-right edge.
+            using (var stageFont = new Font("Segoe UI Semibold", 10F, FontStyle.Bold))
+            using (var captionBrush = new SolidBrush(FlyLabTheme.Accent))
+            using (var valueBrush = new SolidBrush(
+                string.Equals(acarsStage, "NO ACARS", StringComparison.OrdinalIgnoreCase)
+                    ? JoinFS.Properties.Settings.Default.ColourInactiveBackground
+                    : FlyLabTheme.Success))
+            {
+                const string caption = "ACARS STAGE:";
+                string value = acarsStage;
+                string combined = caption + " " + value;
+                var totalSize = g.MeasureString(combined, stageFont);
+                float x = ClientSize.Width - totalSize.Width - 14F;
+                float y = ClientSize.Height - totalSize.Height - 8F;
+
+                g.DrawString(caption, stageFont, captionBrush, x, y);
+                var captionSize = g.MeasureString(caption + " ", stageFont);
+                g.DrawString(value, stageFont, valueBrush, x + captionSize.Width, y);
             }
 
         }
