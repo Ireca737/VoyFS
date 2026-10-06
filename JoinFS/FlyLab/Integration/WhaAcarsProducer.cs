@@ -88,6 +88,13 @@ while ($true) {
     $flightStage = 'NO ACARS'
     $startEnabled = $false
     $abortEnabled = $false
+    $processFound = $false
+    $mainWindowHandle = 0
+    $rootFound = $false
+    $stageFound = $false
+    $startFound = $false
+    $abortFound = $false
+    $uiaError = ''
 
     try {
         $p = Get-Process vaBaseLive -ErrorAction SilentlyContinue |
@@ -96,18 +103,24 @@ while ($true) {
 
         if ($p) {
             $available = $true
+            $processFound = $true
+            $mainWindowHandle = [int64]$p.MainWindowHandle
             $root = [System.Windows.Automation.AutomationElement]::FromHandle(
                 $p.MainWindowHandle)
+            $rootFound = ($null -ne $root)
 
             $stage = Find-ById $root 'lblStage'
+            $stageFound = ($null -ne $stage)
             if ($stage -and -not [string]::IsNullOrWhiteSpace($stage.Current.Name)) {
                 $flightStage = $stage.Current.Name.Trim()
             }
 
             $start = Find-ById $root 'btnStartFlight'
+            $startFound = ($null -ne $start)
             if ($start) { $startEnabled = $start.Current.IsEnabled }
 
             $abort = Find-ById $root 'btnAbortFlight'
+            $abortFound = ($null -ne $abort)
             if ($abort) { $abortEnabled = $abort.Current.IsEnabled }
 
             if ($abortEnabled -and -not $startEnabled) {
@@ -141,11 +154,14 @@ while ($true) {
         else {
             $LastKnownLog = ''
         }
-    } catch {}
+    } catch {
+        $uiaError = $_.Exception.GetType().FullName + ': ' + $_.Exception.Message
+    }
 
     $signature = @(
         $available, $status, $flightStage, $LastKnownLog,
-        $startEnabled, $abortEnabled) -join '|'
+        $startEnabled, $abortEnabled, $processFound, $mainWindowHandle,
+        $rootFound, $stageFound, $startFound, $abortFound, $uiaError) -join '|'
 
     if ($signature -ne $LastSignature) {
         $Sequence++
@@ -158,6 +174,15 @@ while ($true) {
             lastLog = $LastKnownLog
             startFlightEnabled = $startEnabled
             abortFlightEnabled = $abortEnabled
+            diagnostic = [ordered]@{
+                processFound = $processFound
+                mainWindowHandle = $mainWindowHandle
+                rootFound = $rootFound
+                lblStageFound = $stageFound
+                btnStartFlightFound = $startFound
+                btnAbortFlightFound = $abortFound
+                uiaError = $uiaError
+            }
             sequence = $Sequence
             timestamp = (Get-Date).ToString('o')
         }
