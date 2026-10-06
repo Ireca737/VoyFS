@@ -23,6 +23,7 @@ namespace JoinFS.FlyLab.Integration
         private Assembly uiAutomationClientAssembly;
         private Assembly uiAutomationTypesAssembly;
         private Type automationElementType;
+        private Type automationPropertyType;
         private Type propertyConditionType;
         private Type treeScopeType;
 
@@ -113,6 +114,10 @@ namespace JoinFS.FlyLab.Integration
                 "System.Windows.Automation.AutomationElement",
                 throwOnError: true);
 
+            automationPropertyType = uiAutomationTypesAssembly.GetType(
+                "System.Windows.Automation.AutomationProperty",
+                throwOnError: true);
+
             propertyConditionType = uiAutomationTypesAssembly.GetType(
                 "System.Windows.Automation.PropertyCondition",
                 throwOnError: true);
@@ -147,17 +152,39 @@ namespace JoinFS.FlyLab.Integration
             if (automationIdProperty == null)
                 return null;
 
-            object condition = Activator.CreateInstance(
-                propertyConditionType,
+            // Match PowerShell's PropertyCondition(AutomationProperty, object)
+            // overload explicitly. Activator.CreateInstance with object[] can select
+            // a different overload/binder path and produce a condition that never matches.
+            ConstructorInfo conditionCtor = propertyConditionType.GetConstructor(
+                new[] { automationPropertyType, typeof(object) });
+
+            if (conditionCtor == null)
+                throw new MissingMethodException(
+                    propertyConditionType.FullName,
+                    ".ctor(AutomationProperty, object)");
+
+            object condition = conditionCtor.Invoke(
                 new[] { automationIdProperty, (object)StageAutomationId });
 
             object descendants = Enum.Parse(treeScopeType, "Descendants");
 
+            Type conditionBaseType = uiAutomationTypesAssembly.GetType(
+                "System.Windows.Automation.Condition",
+                throwOnError: true);
+
             MethodInfo findFirst = automationElementType.GetMethod(
                 "FindFirst",
-                BindingFlags.Public | BindingFlags.Instance);
+                BindingFlags.Public | BindingFlags.Instance,
+                binder: null,
+                types: new[] { treeScopeType, conditionBaseType },
+                modifiers: null);
 
-            return findFirst?.Invoke(root, new[] { descendants, condition });
+            if (findFirst == null)
+                throw new MissingMethodException(
+                    automationElementType.FullName,
+                    "FindFirst(TreeScope, Condition)");
+
+            return findFirst.Invoke(root, new[] { descendants, condition });
         }
 
         private string ReadStageName(object element)
