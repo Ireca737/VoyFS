@@ -129,17 +129,26 @@ namespace JoinFS.FlyLab.Integration
 
             try
             {
-                object current = automationElementType
-                    .GetProperty("Current", BindingFlags.Public | BindingFlags.Instance)
-                    ?.GetValue(element);
+                // AutomationElement.Current returns an AutomationElementInformation
+                // value type. Its Name member is exposed as a property on that type;
+                // use the declared type rather than the boxed runtime object so the
+                // reflection path mirrors PowerShell's $stage.Current.Name access.
+                PropertyInfo currentProperty = automationElementType.GetProperty(
+                    "Current",
+                    BindingFlags.Public | BindingFlags.Instance);
 
+                if (currentProperty == null)
+                    return string.Empty;
+
+                object current = currentProperty.GetValue(element);
                 if (current == null)
                     return string.Empty;
 
-                object name = current.GetType()
-                    .GetProperty("Name", BindingFlags.Public | BindingFlags.Instance)
-                    ?.GetValue(current);
+                PropertyInfo nameProperty = currentProperty.PropertyType.GetProperty(
+                    "Name",
+                    BindingFlags.Public | BindingFlags.Instance);
 
+                object name = nameProperty?.GetValue(current);
                 return name?.ToString()?.Trim() ?? string.Empty;
             }
             catch
