@@ -2,22 +2,27 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Windows.Automation;
 
 namespace JoinFS.FlyLab.Integration
 {
     /// <summary>
     /// Read-only observer for the VaBase desktop client.
-    /// Uses Windows UI Automation only: no process injection, memory access or network inspection.
+    /// Uses the native Windows UI Automation COM client dynamically:
+    /// no process injection, memory access or network inspection.
     /// </summary>
     internal sealed class VaBaseMonitor
     {
         private const string ProcessName = "vaBaseLive";
         private const string StageAutomationId = "lblStage";
 
+        // Native UI Automation constants.
+        private const int UIA_AutomationIdPropertyId = 30011;
+        private const int TreeScopeDescendants = 4;
+
         private int processId = -1;
         private IntPtr windowHandle = IntPtr.Zero;
-        private AutomationElement stageElement;
+        private dynamic automation;
+        private dynamic stageElement;
 
         internal VaBaseSnapshot Read()
         {
@@ -36,16 +41,17 @@ namespace JoinFS.FlyLab.Integration
                 {
                     processId = process.Id;
                     windowHandle = process.MainWindowHandle;
+                    EnsureAutomation();
                     stageElement = FindStageElement(windowHandle);
                 }
 
-                string stage = stageElement?.Current?.Name?.Trim() ?? string.Empty;
+                string stage = ReadStageName(stageElement);
 
-                // If the cached automation element became stale, resolve it once more.
+                // If the cached element became stale, resolve it once more.
                 if (string.IsNullOrWhiteSpace(stage))
                 {
                     stageElement = FindStageElement(windowHandle);
-                    stage = stageElement?.Current?.Name?.Trim() ?? string.Empty;
+                    stage = ReadStageName(stageElement);
                 }
 
                 return new VaBaseSnapshot(true, stage);
@@ -58,20 +64,52 @@ namespace JoinFS.FlyLab.Integration
             }
         }
 
-        private static AutomationElement FindStageElement(IntPtr handle)
+        private void EnsureAutomation()
+        {
+            if (automation != null)
+                return;
+
+            Type automationType =
+                Type.GetTypeFromProgID("UIAutomationClient.CUIAutomation8")
+                ?? Type.GetTypeFromProgID("UIAutomationClient.CUIAutomation");
+
+            if (automationType == null)
+                throw new InvalidOperationException("Windows UI Automation is not available.");
+
+            automation = Activator.CreateInstance(automationType);
+        }
+
+        private dynamic FindStageElement(IntPtr handle)
         {
             if (handle == IntPtr.Zero)
                 return null;
 
-            var root = AutomationElement.FromHandle(handle);
+            EnsureAutomation();
+
+            dynamic root = automation.ElementFromHandle(handle);
             if (root == null)
                 return null;
 
-            var condition = new PropertyCondition(
-                AutomationElement.AutomationIdProperty,
+            dynamic condition = automation.CreatePropertyCondition(
+                UIA_AutomationIdPropertyId,
                 StageAutomationId);
 
-            return root.FindFirst(TreeScope.Descendants, condition);
+            return root.FindFirst(TreeScopeDescendants, condition);
+        }
+
+        private static string ReadStageName(dynamic element)
+        {
+            if (element == null)
+                return string.Empty;
+
+            try
+            {
+                return ((string)element.CurrentName)?.Trim() ?? string.Empty;
+            }
+            catch
+            {
+                return string.Empty;
+            }
         }
 
         private void Reset()
