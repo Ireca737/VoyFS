@@ -70,14 +70,17 @@ $OutputFile = $env:WHAACARS_OUTPUT
 $ParentPid = [int]$env:WHAACARS_PARENT_PID
 $Sequence = 0
 $LastSignature = $null
-$LastKnownLog = ''
 
-function Find-ById($Root, [string]$Id) {
-    if ($null -eq $Root) { return $null }
-    $c = New-Object System.Windows.Automation.PropertyCondition(
-        [System.Windows.Automation.AutomationElement]::AutomationIdProperty, $Id)
-    return $Root.FindFirst(
-        [System.Windows.Automation.TreeScope]::Descendants, $c)
+function Find-ById($Root, $Id) {
+    $cond = New-Object System.Windows.Automation.PropertyCondition(
+        [System.Windows.Automation.AutomationElement]::AutomationIdProperty,
+        $Id
+    )
+
+    $Root.FindFirst(
+        [System.Windows.Automation.TreeScope]::Descendants,
+        $cond
+    )
 }
 
 while ($true) {
@@ -86,16 +89,11 @@ while ($true) {
     $available = $false
     $status = 'NO_ACARS'
     $flightStage = 'NO ACARS'
-    $startEnabled = $false
-    $abortEnabled = $false
-    $processFound = $false
-    $mainWindowHandle = 0
-    $rootFound = $false
-    $stageFound = $false
+
     $startFound = $false
+    $startEnabled = $false
     $abortFound = $false
-    $uiaError = ''
-    $treeSample = @()
+    $abortEnabled = $false
 
     try {
         $p = Get-Process vaBaseLive -ErrorAction SilentlyContinue |
@@ -104,85 +102,57 @@ while ($true) {
 
         if ($p) {
             $available = $true
-            $processFound = $true
-            $mainWindowHandle = [int64]$p.MainWindowHandle
-            $root = [System.Windows.Automation.AutomationElement]::FromHandle(
-                $p.MainWindowHandle)
-            $rootFound = ($null -ne $root)
 
-            if ($root) {
-                try {
-                    $all = $root.FindAll(
-                        [System.Windows.Automation.TreeScope]::Descendants,
-                        [System.Windows.Automation.Condition]::TrueCondition)
-                    $limit = [Math]::Min($all.Count, 80)
-                    for ($i = 0; $i -lt $limit; $i++) {
-                        $el = $all.Item($i)
-                        $treeSample += [ordered]@{
-                            automationId = $el.Current.AutomationId
-                            name = $el.Current.Name
-                            controlType = $el.Current.ControlType.ProgrammaticName
-                            className = $el.Current.ClassName
-                        }
-                    }
-                } catch {
-                    $uiaError = 'TREE: ' + $_.Exception.GetType().FullName + ': ' + $_.Exception.Message
-                }
-            }
+            $root = [System.Windows.Automation.AutomationElement]::FromHandle(
+                $p.MainWindowHandle
+            )
 
             $stage = Find-ById $root 'lblStage'
-            $stageFound = ($null -ne $stage)
-            if ($stage -and -not [string]::IsNullOrWhiteSpace($stage.Current.Name)) {
-                $flightStage = $stage.Current.Name.Trim()
+            if ($stage) {
+                $flightStage = $stage.Current.Name
+            }
+            else {
+                $flightStage = 'UNKNOWN'
             }
 
             $start = Find-ById $root 'btnStartFlight'
-            $startFound = ($null -ne $start)
-            if ($start) { $startEnabled = $start.Current.IsEnabled }
+            if ($start) {
+                $startFound = $true
+                $startEnabled = $start.Current.IsEnabled
+            }
 
             $abort = Find-ById $root 'btnAbortFlight'
-            $abortFound = ($null -ne $abort)
-            if ($abort) { $abortEnabled = $abort.Current.IsEnabled }
+            if ($abort) {
+                $abortFound = $true
+                $abortEnabled = $abort.Current.IsEnabled
+            }
 
-            if ($abortEnabled -and -not $startEnabled) {
+            # WhaACARS state machine V1 - certified on the PowerShell test bench.
+            # Abort has priority during VaBase's short Start Flight UI transition.
+            if ($abortFound -and $abortEnabled) {
                 $status = 'RUNNING'
             }
-            elseif ($startEnabled -and -not $abortEnabled) {
+            elseif ($startFound -and $startEnabled) {
                 $status = 'NOT_STARTED'
             }
             else {
                 $status = 'UNKNOWN'
             }
-
-            # txtMsg is exposed by VaBase UIA only while Flight Log is materialized.
-            # Keep the last actually observed entry when the tab is not available.
-            $log = Find-ById $root 'txtMsg'
-            if ($log) {
-                try {
-                    $tp = $log.GetCurrentPattern(
-                        [System.Windows.Automation.TextPattern]::Pattern)
-                    $fullLog = $tp.DocumentRange.GetText(-1)
-                    if (-not [string]::IsNullOrWhiteSpace($fullLog)) {
-                        $lines = $fullLog -split ""`r?`n"" |
-                            Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
-                        if ($lines.Count -gt 0) {
-                            $LastKnownLog = $lines[0].Trim()
-                        }
-                    }
-                } catch {}
-            }
         }
-        else {
-            $LastKnownLog = ''
-        }
-    } catch {
-        $uiaError = $_.Exception.GetType().FullName + ': ' + $_.Exception.Message
+    }
+    catch {
+        $status = 'ERROR'
     }
 
     $signature = @(
-        $available, $status, $flightStage, $LastKnownLog,
-        $startEnabled, $abortEnabled, $processFound, $mainWindowHandle,
-        $rootFound, $stageFound, $startFound, $abortFound, $uiaError) -join '|'
+        $available
+        $status
+        $flightStage
+        $startFound
+        $startEnabled
+        $abortFound
+        $abortEnabled
+    ) -join '|'
 
     if ($signature -ne $LastSignature) {
         $Sequence++
@@ -192,20 +162,10 @@ while ($true) {
             available = $available
             status = $status
             flightStage = $flightStage
-            lastLog = $LastKnownLog
+            startFlightFound = $startFound
             startFlightEnabled = $startEnabled
+            abortFlightFound = $abortFound
             abortFlightEnabled = $abortEnabled
-            diagnostic = [ordered]@{
-                processFound = $processFound
-                mainWindowHandle = $mainWindowHandle
-                rootFound = $rootFound
-                lblStageFound = $stageFound
-                btnStartFlightFound = $startFound
-                btnAbortFlightFound = $abortFound
-                uiaError = $uiaError
-                treeCount = $treeSample.Count
-                treeSample = $treeSample
-            }
             sequence = $Sequence
             timestamp = (Get-Date).ToString('o')
         }
