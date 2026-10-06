@@ -203,10 +203,9 @@
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 	</ItemGroup>
 
-	<!-- FlyLab VaBase observer: Windows UI Automation (desktop client builds only). -->
+	<!-- FlyLab VaBase observer: UI Automation client support for .NET desktop builds. -->
 	<ItemGroup Condition=" '$(Configuration)' != 'CONSOLE' AND '$(Configuration)' != 'CONSOLE-Debug' ">
-		<Reference Include="UIAutomationClient" />
-		<Reference Include="UIAutomationTypes" />
+		<PackageReference Include="Interop.UIAutomationClient" Version="10.19041.0" />
 	</ItemGroup>
 
 	<!-- CONSOLE references -->
