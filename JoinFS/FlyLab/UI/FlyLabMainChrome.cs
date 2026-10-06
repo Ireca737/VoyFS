@@ -17,6 +17,7 @@ namespace JoinFS.FlyLab.UI
         private readonly FlyLabTrafficDisplay trafficDisplay;
         private readonly FlyLabWhazzupTrafficProvider trafficProvider = new FlyLabWhazzupTrafficProvider();
         private readonly VaBaseMonitor vaBaseMonitor = new VaBaseMonitor();
+        private readonly WhaAcarsProducer whaAcarsProducer = new WhaAcarsProducer();
         private readonly Button networkButton;
         private readonly Button simulatorButton;
         private readonly Button globalButton;
@@ -109,6 +110,11 @@ namespace JoinFS.FlyLab.UI
             var timer = new System.Windows.Forms.Timer { Interval = 250 };
             timer.Tick += (_, __) => RefreshOperationalState();
             timer.Start();
+
+            // WhaACARS V1 producer only: publish the provider-neutral JSON contract.
+            // UI consumption remains deliberately disconnected during this validation phase.
+            whaAcarsProducer.Start();
+            form.FormClosed += (_, __) => whaAcarsProducer.Dispose();
 
             RefreshOperationalState();
             form.ResumeLayout(true);
