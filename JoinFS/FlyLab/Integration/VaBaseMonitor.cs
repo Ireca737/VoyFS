@@ -28,44 +28,65 @@ namespace JoinFS.FlyLab.Integration
 
         internal VaBaseSnapshot Read()
         {
+            Process process;
             try
             {
-                var process = Process.GetProcessesByName(ProcessName)
+                process = Process.GetProcessesByName(ProcessName)
                     .FirstOrDefault(p => p.MainWindowHandle != IntPtr.Zero);
-
-                if (process == null)
-                {
-                    Reset();
-                    return new VaBaseSnapshot(false, string.Empty);
-                }
-
-                if (process.Id != processId || process.MainWindowHandle != windowHandle || stageElement == null)
-                {
-                    processId = process.Id;
-                    windowHandle = process.MainWindowHandle;
-                    stageElement = FindStageElement(windowHandle);
-                }
-
-                string stage = ReadStageName(stageElement);
-
-                // If the cached automation element became stale, resolve it once more.
-                if (string.IsNullOrWhiteSpace(stage))
-                {
-                    stageElement = FindStageElement(windowHandle);
-                    stage = ReadStageName(stageElement);
-                }
-
-                return new VaBaseSnapshot(true, stage);
             }
             catch (Exception ex)
             {
-                // Diagnostic phase: preserve the failure point instead of silently
-                // collapsing every UI Automation exception into NO ACARS.
-                string detail = UnwrapException(ex);
-                Debug.WriteLine("[FlyLab ACARS] " + detail);
-                Reset();
-                return new VaBaseSnapshot(true, "UIA ERROR: " + detail);
+                return Diagnostic("PROCESS", ex);
             }
+
+            if (process == null)
+            {
+                Reset();
+                return new VaBaseSnapshot(false, string.Empty);
+            }
+
+            processId = process.Id;
+            windowHandle = process.MainWindowHandle;
+
+            try
+            {
+                EnsureUiAutomation();
+            }
+            catch (Exception ex)
+            {
+                return Diagnostic("LOAD", ex);
+            }
+
+            try
+            {
+                stageElement = FindStageElement(windowHandle);
+            }
+            catch (Exception ex)
+            {
+                return Diagnostic("FIND", ex);
+            }
+
+            if (stageElement == null)
+                return new VaBaseSnapshot(true, "UIA FIND: lblStage NOT FOUND");
+
+            try
+            {
+                string stage = ReadStageName(stageElement);
+                return string.IsNullOrWhiteSpace(stage)
+                    ? new VaBaseSnapshot(true, "UIA NAME: EMPTY")
+                    : new VaBaseSnapshot(true, stage);
+            }
+            catch (Exception ex)
+            {
+                return Diagnostic("NAME", ex);
+            }
+        }
+
+        private VaBaseSnapshot Diagnostic(string step, Exception ex)
+        {
+            string detail = UnwrapException(ex);
+            Debug.WriteLine("[FlyLab ACARS][" + step + "] " + detail);
+            return new VaBaseSnapshot(true, "UIA " + step + ": " + detail);
         }
 
         private static string UnwrapException(Exception ex)
@@ -144,34 +165,26 @@ namespace JoinFS.FlyLab.Integration
             if (element == null)
                 return string.Empty;
 
-            try
-            {
-                // AutomationElement.Current returns an AutomationElementInformation
-                // value type. Its Name member is exposed as a property on that type;
-                // use the declared type rather than the boxed runtime object so the
-                // reflection path mirrors PowerShell's $stage.Current.Name access.
-                PropertyInfo currentProperty = automationElementType.GetProperty(
-                    "Current",
-                    BindingFlags.Public | BindingFlags.Instance);
+            PropertyInfo currentProperty = automationElementType.GetProperty(
+                "Current",
+                BindingFlags.Public | BindingFlags.Instance);
 
-                if (currentProperty == null)
-                    return string.Empty;
+            if (currentProperty == null)
+                throw new MissingMemberException(automationElementType.FullName, "Current");
 
-                object current = currentProperty.GetValue(element);
-                if (current == null)
-                    return string.Empty;
-
-                PropertyInfo nameProperty = currentProperty.PropertyType.GetProperty(
-                    "Name",
-                    BindingFlags.Public | BindingFlags.Instance);
-
-                object name = nameProperty?.GetValue(current);
-                return name?.ToString()?.Trim() ?? string.Empty;
-            }
-            catch
-            {
+            object current = currentProperty.GetValue(element);
+            if (current == null)
                 return string.Empty;
-            }
+
+            PropertyInfo nameProperty = currentProperty.PropertyType.GetProperty(
+                "Name",
+                BindingFlags.Public | BindingFlags.Instance);
+
+            if (nameProperty == null)
+                throw new MissingMemberException(currentProperty.PropertyType.FullName, "Name");
+
+            object name = nameProperty.GetValue(current);
+            return name?.ToString()?.Trim() ?? string.Empty;
         }
 
         private void Reset()
