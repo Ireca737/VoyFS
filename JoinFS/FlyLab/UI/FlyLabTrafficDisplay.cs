@@ -186,8 +186,10 @@ namespace JoinFS.FlyLab.UI
                 using var callsignBrush = new SolidBrush(FlyLabTheme.Accent);
                 string text = "CALLSIGN:  " + ownshipCallsign;
                 var size = g.MeasureString(text, callsignFont);
+                // Phase 1 ACARS layout: keep the callsign on the lower-left edge
+                // of the radar, directly above the SIMULATORE status indicator.
                 g.DrawString(text, callsignFont, callsignBrush,
-                    ClientSize.Width - size.Width - 14F,
+                    14F,
                     ClientSize.Height - size.Height - 8F);
             }
 
