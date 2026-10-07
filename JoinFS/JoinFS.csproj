@@ -6,7 +6,7 @@
     <Platforms>x64;x86;ARM64</Platforms>
     <AssemblyVersion>26.6</AssemblyVersion>
     <FileVersion>26.6</FileVersion>
-    <ApplicationIcon>Resources\App.ico</ApplicationIcon>
+    <ApplicationIcon>FlyLab\Resources\flylabfs.ico</ApplicationIcon>
     <StartupObject>JoinFS.Program</StartupObject>
     <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
   </PropertyGroup>
