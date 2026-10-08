@@ -26,7 +26,7 @@ Stati: **completato** = risultato documentato nel perimetro indicato; **in corso
 | C3 — Traffico/TCAS Whazzup | Implementato; conferma finale del collaudo da verificare | Provider Whazzup, range 2–40 NM e simbologia nel codice; commit `e035f30` heading-up e successivo ritiro phantom | Non riaprire automaticamente il vecchio problema phantom: cercare/confermare esito finale dopo le correzioni. |
 | C4 — Release beta precedente ad ACARS | Riferimento Git presente | Branch `release/flylab-beta-pre-acars`, inclusa icona EXE FlyLab | Associare nome/versione del pacchetto distribuito e varianti provate; non equiparare il branch a una release pubblicata. |
 | C5 — WhaACARS V1 al banco PowerShell | Completato per il test documentato | Conferma utente: `NOT_STARTED → RUNNING → NOT_STARTED` con Start/Abort e scrittura su cambio stato | Preservare questo comportamento come riferimento per la prova embedded. |
-| C6 — WhaACARS embedded | In corso / da validare | Producer integrato (`5652409`, `d9ce604`, `93fd4a7`), diagnostica `8bb337f`; nelle ultime conferme recuperate processo rilevato ma controlli UIA non trovati | Dimostrare la stessa sequenza del banco avviando FlyLabFS; verificare JSON, sequence e arresto worker. Non chiudere in base al nome “certified” del commit. |
+| C6 — WhaACARS embedded / aggiornamento JSON | In corso — non funzionante, confermato dall'utente l'8 ottobre | Il test PowerShell legge gli stati VaBase; il percorso integrato non riesce ancora ad aggiornare il JSON destinato alla UI FlyLabFS. Producer presente nel codice; causa tecnica non stabilita da questa conferma. | Diagnosi e prove proseguono nell'altra chat dedicata ad ACARS. Qui recepire soltanto l'esito: lettura degli stati e aggiornamento JSON corretti nel percorso integrato, prima del consumer UI. |
 | C7 — Consumer/indicatore ACARS | Pianificato, collegamento non completato | Indicatore ancora scollegato; testo fase usa VaBaseMonitor; JSON del producer non consumato dalla UI alla baseline | Dopo C6, collegare lo stato alla UI secondo le decisioni della chat ACARS. Opzione avvisi e suoni restano requisiti, non funzionalità già validate. |
 | C8 — Base FlyLabFS consolidata | Traguardo dopo completamento ACARS | Decisione utente in questa chat | Tag, pacchetto, configurazioni e inventario coerenti; evoluzioni successive come widget separati e manutenzione upstream. |
 
@@ -74,7 +74,6 @@ FlyLab mantiene il proprio codice, i collegamenti e la configurazione che usa. L
 Aggiornare questa roadmap quando una prova cambia lo stato di una voce, specificando commit/pacchetto, ambiente, data e risultato. Aggiornare il registro tecnico quando cambia un aggancio. Non creare una seconda lista concorrente dei problemi.
 
 Restano da confermare solo questi punti operativi:
-- C6: esiste un test embedded successivo con esito positivo?
 - F1: il test A2 con webhook attivo è stato eseguito e con quale esito?
 - S2: quale script/versione di controllo hub è in uso e risulta validato?
 - C2/C3/C4: quali pacchetti/varianti hanno ricevuto l'ultima approvazione operativa?
@@ -84,3 +83,5 @@ Queste domande delimitano lacune documentali; non affermano che le funzioni sian
 ## Storico
 
 - 2026-10-08: prima riconciliazione; lettura codice/documenti e recupero decisioni delle chat. Nessun nuovo test Windows, volo o server. Nessuna modifica applicativa.
+
+- 2026-10-08, 07:44 Europe/Rome: conferma diretta utente su C6: lettura PowerShell riuscita, aggiornamento JSON nel percorso integrato ancora non funzionante. Attività in corso nella chat ACARS; nessuna diagnosi parallela avviata qui.
