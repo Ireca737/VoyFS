@@ -1,8 +1,12 @@
 # FlyLabFS — VaBase ACARS Status Monitor
 
-**Status:** reverse engineering validated / implementation pending  
+**Status:** historical investigation (6 October); implementation has progressed — see current status below  
 **Branch:** `feat/flylab-ui`  
 **Date:** 2026-10-06
+
+## Status reconciliation — 8 October 2026
+
+This document preserves the original investigation and proposed design. It is not the current implementation checklist. See [FlyLab roadmap, C5–C7](flylab-roadmap.md) for the reconciled status: the PowerShell bench transition was confirmed; an embedded producer exists, but its equivalent runtime validation remains open in the recovered evidence; the ACARS indicator/JSON consumer is not yet connected. The live stage reader and the embedded JSON producer are separate paths. Do not treat the historical “next validation steps” below as wholly unimplemented or already completed.
 
 ## Objective
 
