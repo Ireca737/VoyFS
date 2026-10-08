@@ -1,3 +1,7 @@
+## FlyLabFS — manutenzione delle integrazioni
+
+Il [registro dei punti di aggancio](docs/flylab-joinfs-integration-register.md) descrive le dipendenze da JoinFS e dai servizi esterni. Aggiornarlo nella stessa modifica che aggiunge, cambia o rimuove un aggancio e a ogni integrazione upstream.
+
 ### The JoinFS site is online. Please visit [https://joinfs.net](https://joinfs.net) for all the information about the project.
 
 > [!IMPORTANT]
