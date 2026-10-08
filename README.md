@@ -1,4 +1,6 @@
-## FlyLabFS — manutenzione delle integrazioni
+## FlyLabFS — roadmap e manutenzione
+
+La [roadmap e stato del progetto](docs/flylab-roadmap.md) raccoglie traguardi, evidenze e verifiche aperte per client/ACARS, server e Radio Integration; definisce anche come valutare gli aggiornamenti Tuduce.
 
 Il [registro dei punti di aggancio](docs/flylab-joinfs-integration-register.md) descrive le dipendenze da JoinFS e dai servizi esterni. Aggiornarlo nella stessa modifica che aggiunge, cambia o rimuove un aggancio e a ogni integrazione upstream.
 
